@@ -24,10 +24,13 @@ get '/image/v1/*/*' do |command, url|
     }
     image = Magick::Image.from_blob(response.body).shift
     draw = Magick::Draw.new
+    #logger.info File.expand_path('.fonts/ipaexg.ttf')
+    #draw.font(File.expand_path('.fonts/ipaexg.ttf'))
     if commandHash.key?('annotate') then
         args = commandHash['annotate']
         #logger.error args['text']
         draw.annotate(image, args.fetch('w', 0), args.fetch('h', 0), args.fetch('x', 0), args.fetch('y', 0) + args.fetch('size', 30), args['text']) do
+            self.font = File.expand_path('.fonts/ipaexg.ttf')
             self.fill = args.fetch('color', '#000000')
             self.pointsize = args.fetch('size', 30)
         end
