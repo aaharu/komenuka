@@ -4,6 +4,7 @@ require 'RMagick'
 require 'uri'
 require 'net/http'
 require 'json'
+require 'gd2'
 
 get '/font_list' do
     font_list = []
@@ -22,23 +23,35 @@ get '/image/v1/*/*' do |command, url|
     response = Net::HTTP.start(uri.host, uri.port) {|http|
         http.get(uri.path)
     }
-    image = Magick::Image.from_blob(response.body).shift
-    draw = Magick::Draw.new
-    #logger.info File.expand_path('.fonts/ipaexg.ttf')
-    #draw.font(File.expand_path('.fonts/ipaexg.ttf'))
-    if commandHash.key?('annotate') then
-        args = commandHash['annotate']
-        #logger.error args['text']
-        draw.annotate(image, args.fetch('w', 0), args.fetch('h', 0), args.fetch('x', 0), args.fetch('y', 0) + args.fetch('size', 30), args['text']) do
-            self.font = File.expand_path('.fonts/ipaexg.ttf')
-            self.fill = args.fetch('color', '#000000')
-            self.pointsize = args.fetch('size', 30)
-        end
+    #logger.error args['text']
+    #image = Magick::Image.from_blob(response.body).shift
+
+    image = GD2::Image.load(response.body)
+=begin
+    if commandHash.key?('rectangle') then
+        args = commandHash['rectangle']
+
+        draw = Magick::Draw.new
+        draw.fill = '#FFFFFF'
+        draw.rectangle(args.fetch('x1', 0).to_i, args.fetch('y1', 0).to_i, args.fetch('x2', 0).to_i, args.fetch('y2', 0).to_i)
+        draw.draw(image)
     end
 
+    if commandHash.key?('annotate') then
+        args = commandHash['annotate']
+        fontSize = args.fetch('size', 30).to_i
+
+        draw = Magick::Draw.new
+        draw.annotate(image, args.fetch('w', 0).to_i, args.fetch('h', 0).to_i, args.fetch('x', 0).to_i, args.fetch('y', 0).to_i + fontSize, args['text']) do
+            #self.font = File.expand_path('.fonts/ipaexg.ttf')
+            self.font = '.fonts/ipaexg.ttf'
+            self.fill = args.fetch('color', '#000000')
+            self.pointsize = fontSize
+            self.rotation = 90
+        end
+    end
+=end
     content_type response.content_type
-    #response.body
-    #image.blur_image(0,2).to_blob
     image.to_blob
 end
 
