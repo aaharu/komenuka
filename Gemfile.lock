@@ -1,7 +1,6 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    gd2 (1.1.1)
     rack (1.5.2)
     rack-protection (1.5.0)
       rack
@@ -16,6 +15,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  gd2
   rmagick (~> 2.13.1)
   sinatra (= 1.4.2)
