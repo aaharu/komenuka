@@ -5,6 +5,12 @@ require 'uri'
 require 'net/http'
 require 'json'
 
+use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css'], :root => 'public'
+
+get '/' do
+    erb :index
+end
+
 get '/image/v1/*/*' do |command, url|
     begin
         commandHash = JSON.parse(command)
@@ -13,7 +19,9 @@ get '/image/v1/*/*' do |command, url|
     end
 
     begin
-        url = url.sub(':/', '://')
+        unless url.index('://') then
+            url = url.sub(':/', '://')
+        end
         uri = URI.parse(url)
         response = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
@@ -66,9 +74,5 @@ get '/image/v1/*/*' do |command, url|
 
     content_type response.content_type
     image.to_blob
-end
-
-get '/' do
-    'Hello, world'
 end
 
