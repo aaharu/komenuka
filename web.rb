@@ -73,6 +73,7 @@ get '/image/v1/*/*' do |command, url|
     end
 
     content_type response.content_type
+    cache_control :public
     image.to_blob
 end
 
