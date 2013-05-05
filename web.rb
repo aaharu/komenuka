@@ -12,7 +12,11 @@ IMAGE_NUM_MAX = 20
 
 get '/' do
     begin
-        dc = Dalli::Client.new('localhost:11211')
+        dc = Dalli::Client.new(
+            ENV['MEMCACHIER_SERVERS'].split(","),
+            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+        )
+        #dc = Dalli::Client.new('localhost:11211')
         imageSet = dc.get('set')
     rescue => e
         logger.warn e.to_s
