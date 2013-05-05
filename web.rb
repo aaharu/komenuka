@@ -13,7 +13,7 @@ IMAGE_NUM_MAX = 20
 get '/' do
     begin
         dc = Dalli::Client.new(
-            ENV['MEMCACHIER_SERVERS'].split(","),
+            ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
         #dc = Dalli::Client.new('localhost:11211')
@@ -24,7 +24,7 @@ get '/' do
     unless imageSet
         imageSet = Set.new
     end
-    erb :index, :locals => {:images => imageSet} 
+    erb :index, :locals => {:images => imageSet}
 end
 
 get '/readme' do
@@ -96,7 +96,11 @@ get '/image/v1/*/*' do |command, url|
     end
 
     begin
-        dc = Dalli::Client.new('localhost:11211')
+        dc = Dalli::Client.new(
+            ENV['MEMCACHIER_SERVERS'],
+            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+        )
+        #dc = Dalli::Client.new('localhost:11211')
         imageSet = dc.get('set')
         unless imageSet
             imageSet = Set.new
