@@ -4,17 +4,34 @@ require 'RMagick'
 require 'uri'
 require 'net/http'
 require 'json'
+require 'dalli'
+require 'set'
 
-use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css'], :root => 'public'
+use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js'], :root => 'public'
+IMAGE_NUM_MAX = 20
 
 get '/' do
-    erb :index
+    begin
+        dc = Dalli::Client.new('localhost:11211')
+        imageSet = dc.get('set')
+    rescue => e
+        logger.warn e.to_s
+    end
+    unless imageSet
+        imageSet = Set.new
+    end
+    erb :index, :locals => {:images => imageSet} 
+end
+
+get '/readme' do
+    erb :readme
 end
 
 get '/image/v1/*/*' do |command, url|
     begin
         commandHash = JSON.parse(command)
-    rescue
+    rescue => e
+        logger.error e.to_s
         halt 400, 'command error'
     end
 
@@ -27,7 +44,8 @@ get '/image/v1/*/*' do |command, url|
             http.get(uri.path)
         }
         image = Magick::Image.from_blob(response.body).shift
-    rescue
+    rescue => e
+        logger.error e.to_s
         halt 500, 'url error'
     end
 
@@ -68,8 +86,27 @@ get '/image/v1/*/*' do |command, url|
                 end
             end
         end
-    rescue
+    rescue => e
+        logger.error e.to_s
         halt 500, 'image error'
+    end
+
+    begin
+        dc = Dalli::Client.new('localhost:11211')
+        imageSet = dc.get('set')
+        unless imageSet
+            imageSet = Set.new
+        end
+        if imageSet.length > IMAGE_NUM_MAX
+            tmp = imageSet.to_a.shift
+            tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+            imageSet = Set.new(tmp)
+        else
+            imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+        end
+        dc.set('set', imageSet)
+    rescue => e
+        logger.warn e.to_s
     end
 
     content_type response.content_type

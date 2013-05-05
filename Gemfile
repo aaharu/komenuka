@@ -1,3 +1,4 @@
 source :rubygems
-gem 'sinatra', '1.4.2'
-gem 'rmagick', '~> 2.13.1', :require => 'RMagick'
+gem 'sinatra', '~> 1.4'
+gem 'rmagick', '~> 2.13', :require => 'RMagick'
+gem 'dalli', '~> 2.6'

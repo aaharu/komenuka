@@ -4,6 +4,7 @@
         <meta charset="utf-8" />
         <title>simple image editor</title>
         <link href="/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/css/sie.css" rel="stylesheet" />
         <meta name="author" content="aaharu">
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
@@ -12,97 +13,31 @@
             <h1>simple image editor</h1>
             <p class="lead">editing a image by URL.</p>
         </header>
-        <section>
-            <h2>introduction</h2>
-            <p>Web上にある画像を編集して、画像を返します。<br />URLにコマンドを記入するだけでコメント付きの画像を生成することが可能です。</p>
-            <h3>example</h3>
-            <ul class="thumbnails">
-                <li class="span5">
-                    <div class="thumbnail">
-                        <div class="caption text-center">
-                            <h4>before</h4>
-                        </div>
-                        <img src="http://tiqav.com/3tB.jpg" width="80%" alt="お前…死にたいのか？" />
-                        <div class="caption text-center">
-                            <pre>&lt;img src="http://tiqav.com/3tB.jpg"&gt;</pre>
-                        </div>
-                    </div>
-                </li>
-                <li class="span5">
-                    <div class="thumbnail">
-                        <div class="caption text-center">
-                            <h4>after</h4>
-                        </div>
-                        <img src="/image/v1/%7B%22rectangle%22:%7B%22x1%22:545,%22y1%22:35,%22x2%22:660,%22y2%22:336%7D,%22tategaki%22:%7B%22x%22:560,%22y%22:32,%22text%22:%22%E5%92%B2%E3%81%95%E3%82%93%E3%81%8B%E3%82%8F%E3%81%84%E3%81%84%22,%22size%22:43%7D%7D/http%3A%2F%2Ftiqav.com%2F3tB.jpg" width="80%" alt="咲さんかわいい" />
-                        <div class="caption text-center">
-                            <pre>&lt;img src="http://safe-earth-4215.herokuapp.com/image/v1/%7B%22rectangle%22:%7B%22x1%22:545,%22y1%22:35,%22x2%22:660,%22y2%22:336%7D,%22tategaki%22:%7B%22x%22:560,%22y%22:32,%22text%22:%22%E5%92%B2%E3%81%95%E3%82%93%E3%81%8B%E3%82%8F%E3%81%84%E3%81%84%22,%22size%22:43%7D%7D/http%3A%2F%2Ftiqav.com%2F3tB.jpg"&gt;</pre>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-        </section>
-        <section>
-            <h2>usage</h2>
-            <pre>http://safe-earth-4215.herokuapp.com/<span>%URL_encorded JSON%</span>/<span>%URL_encoded URL%</span></pre>
-            <h3>JSON Format</h3>
-            <pre>
-{
-    COMMAND1 : {
-        ARGMENT1_KEY : ARGMENT1_VALUE,
-        ARGMENT2_KEY : ARGMENT2_VALUE,
-        ...
-    },
-    COMMAND2 : {
-        ARGMENT1_KEY : ARGMENT1_VALUE,
-        ...
-    },
-    ...
-}
-            </pre>
-            <p class="text-warning">JSONに"/"の文字を使用することはできません。</p>
-            <h4>rectangle</h4>
-            <dl>
-                <dt>x1</dt>
-                <dd>正方形の対角の点を点1、点2とした場合の、点1のX座標。デフォルト値:0</dd>
-                <dt>y1</dt>
-                <dd>点1のY座標。デフォルト値:0</dd>
-                <dt>x2</dt>
-                <dd>点2のX座標。デフォルト値:0</dd>
-                <dt>y2</dt>
-                <dd>点1のY座標。デフォルト値:0</dd>
-                <dt>color</dt>
-                <dd>塗りつぶしの色。デフォルト値:"#FFFFFF"</dd>
-            </dl>
-            <h4>annotate</h4>
-            <dl>
-                <dt>x</dt>
-                <dd>始点のX座標。デフォルト値:0</dd>
-                <dt>y</dt>
-                <dd>始点のY座標。デフォルト値:0</dd>
-                <dt>size</dt>
-                <dd>文字の大きさ。デフォルト値:30</dd>
-                <dt>color</dt>
-                <dd>文字色。デフォルト値:"#000000"</dd>
-                <dt>text</dt>
-                <dd>文字。</dd>
-            </dl>
-            <h4>tategaki</h4>
-            <dl>
-                <dt>x</dt>
-                <dd>始点のX座標。デフォルト値:0</dd>
-                <dt>y</dt>
-                <dd>始点のY座標。デフォルト値:0</dd>
-                <dt>size</dt>
-                <dd>文字の大きさ。デフォルト値:30</dd>
-                <dt>color</dt>
-                <dd>文字色。デフォルト値:"#000000"</dd>
-                <dt>text</dt>
-                <dd>文字。</dd>
-            </dl>
-        </section>
+        <a href="/readme" id="readme">readme</a>
+<% if images %>
+        <div id="list">
+<% images.each do |item| %>
+            <a href="<%= item %>"><img src="<%= item %>" width="300" height="300" class="img-polaroid" /></a>
+<% end %>
+        </div>
+<% end %>
         <footer>
             using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
             <small>&#169; aaharu</small>
         </footer>
+        <!--[if lt IE 9]>
+            <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
+        <![endif]-->
+        <!--[if gte IE 9]><!-->
+            <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.0.min.js"></script>
+        <!--<![endif]-->
+        <script src="/js/jquery.stalactite.min.js"></script>
+        <script type="text/javascript">
+        $(function(){
+            $("#list").stalactite({
+                offset: 10
+            });
+        });
+        </script>
     </body>
 </html>
