@@ -16,7 +16,6 @@ get '/' do
             ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
-        #dc = Dalli::Client.new('localhost:11211')
         imageSet = dc.get('set')
     rescue => e
         logger.warn e.to_s
@@ -29,6 +28,31 @@ end
 
 get '/readme' do
     erb :readme
+end
+
+get '/make' do
+    erb :make
+end
+
+get '/proxy' do
+    unless params.has_key?('url')
+        halt 400, 'bad parameter'
+    end
+
+    begin
+        uri = URI.parse(params['url'])
+        response = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+    rescue => e
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    content_type response.content_type
+    #同ドメインになるのでつけなくてもいいけど
+    headers['Access-Control-Allow-Origin'] = '*'
+    response.body
 end
 
 get '/image/v1/*/*' do |command, url|
@@ -100,7 +124,6 @@ get '/image/v1/*/*' do |command, url|
             ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
-        #dc = Dalli::Client.new('localhost:11211')
         imageSet = dc.get('set')
         unless imageSet
             imageSet = Set.new
@@ -117,6 +140,7 @@ get '/image/v1/*/*' do |command, url|
         logger.warn e.to_s
     end
 
+    headers['Access-Control-Allow-Origin'] = '*'
     content_type response.content_type
     cache_control :public
     image.to_blob

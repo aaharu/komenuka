@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <title>simple image editor</title>
+        <link href="/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/css/sie.css" rel="stylesheet" />
+        <meta name="author" content="aaharu">
+        <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    </head>
+    <body>
+        <header>
+            <h1>simple image editor</h1>
+            <p class="lead">editing a image by URL.</p>
+        </header>
+        <canvas id="canvas"></canvas>
+        <input type="text" />
+        <button>btn</button>
+        <textarea id="outjson"></textarea>
+        <footer>
+            using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
+            <small>&#169; aaharu</small>
+        </footer>
+        <!--[if lt IE 9]>
+            <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
+        <![endif]-->
+        <!--[if gte IE 9]><!-->
+            <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.0.min.js"></script>
+        <!--<![endif]-->
+        <script src="http://code.createjs.com/easeljs-0.6.0.min.js"></script>
+        <script type="text/javascript">
+        $(function(){
+            "use strict";
+            $("button").click(function(){
+                var val = $("input").val();
+                if (val) {
+                    /*var img = new Image();
+                    img.addEventListener("load", function(e){
+                        var canvas = document.getElementById("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        var context = canvas.getContext("2d");
+                        context.drawImage(img, 0, 0);
+                    }, false);
+                    img.src = val;*/
+
+                    var stage = new createjs.Stage("canvas");
+                    var bmp = new createjs.Bitmap("/proxy?url=" + encodeURI(val));
+                    bmp.image.onload = function(){
+                        stage.canvas.width = bmp.image.width;
+                        stage.canvas.height = bmp.image.height;
+                        stage.addChild(bmp);
+                        stage.update();
+
+                        var shape = new createjs.Shape(),
+                            overlay = new createjs.Shape();
+                        stage.addChild(shape);
+                        stage.addChild(overlay);
+                        var jsonObj = {};
+
+                        stage.addEventListener("mousedown", function(mouseDownEvent) {
+                            var startX = mouseDownEvent.stageX,
+                                startY = mouseDownEvent.stageY;
+                            console.log("MouseDown:" + startX + ", " + startY);
+                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
+                                overlay.graphics.c().f("#cccccc").r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
+                                stage.update();
+                            });
+                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
+                                console.log("MouseUp:" + mouseUpEvent.stageX + ", " + mouseUpEvent.stageY);
+                                overlay.graphics.c();
+                                shape.graphics.f("#ffffff").r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
+                                stage.update();
+                                //x1,x2の大小とか判断しないといけない気がする
+                                jsonObj["rectangle"] = {
+                                    x1: startX,
+                                    y1: startY,
+                                    x2: mouseUpEvent.stageX - startX,
+                                    y2: mouseUpEvent.stageY - startY
+                                };
+                                $("#outjson").val(JSON.stringify(jsonObj));
+                            });
+                        });
+                    }
+                } else {
+                    alert("please input");
+                }
+            });
+        });
+        </script>
+    </body>
+</html>
