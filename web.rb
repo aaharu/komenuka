@@ -67,7 +67,7 @@ get '/image/v1/*/*' do |command, url|
             fontSize = args.fetch('size', 30).to_i
             draw = Magick::Draw.new
             draw.annotate(image, image.columns, image.rows, args.fetch('x', 0).to_i, args.fetch('y', 0).to_i + fontSize, args['text']) do
-                self.font = '.fonts/ipaexg.ttf'
+                self.font = 'fonts/ipaexg.ttf'
                 self.fill = args.fetch('color', '#000000')
                 self.pointsize = fontSize
             end
@@ -81,7 +81,7 @@ get '/image/v1/*/*' do |command, url|
                 i = 0
                 while i < args['text'].size
                     draw.annotate(image, image.columns, image.rows, args.fetch('x', 0).to_i + fontSize, args.fetch('y', 0).to_i + fontSize * (i + 1), args['text'][i]) do
-                        self.font = '.fonts/ipaexg.ttf'
+                        self.font = 'fonts/ipaexg.ttf'
                         self.align = Magick::CenterAlign
                         self.fill = args.fetch('color', '#000000')
                         self.pointsize = fontSize
