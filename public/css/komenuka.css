@@ -5,6 +5,11 @@ body{
 	min-height: 80px;
 	min-width: 200px;
 }
+main{
+	display: block;
+	margin: 0;
+	padding: 0;
+}
 #readme{
 	position: absolute;
 	margin: -40px 0 0 -100px;
