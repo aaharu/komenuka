@@ -20,13 +20,20 @@
         </form>
         <div>
             <div>
-                <button id="rectangleBtn">rectangle</button>
-                <button id="annotateBtn">annotate</button>
-                <button id="tategakiBtn">tategaki</button>
+                <div>
+                    <button id="rectangleBtn">rectangle</button>
+                </div>
+                <div>
+                    <button id="annotateBtn">annotate</button>
+                    <button id="tategakiBtn">tategaki(dekitenaiyo)</button>
+                    <input id="drawText" type="text" />
+                </div>
             </div>
             <canvas id="canvas" width="0" height="0"></canvas>
         </div>
-        <textarea id="outjson"></textarea>
+        <textarea id="outjson"></textarea><br />
+        <input id="komenukaUrlText" type="text" /><button id="chkBtn">check</button>
+        <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
         <footer>
             using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
             <small>&#169; aaharu</small>
@@ -43,8 +50,22 @@
             "use strict";
             var KomenukaCanvas = function KomenukaCanvas(stage){
                 var shape, overlay, jsonObj;
-                var $out = $("#outjson");
-                
+                var $out = $("#outjson"), $outUrl = $("#komenukaUrlText");
+
+                function updateJson(obj){
+                    for (var k in obj) {
+                        if (jsonObj[k] === undefined) {
+                            jsonObj[k] = obj[k];
+                        } else if (jsonObj[k] instanceof Array) {
+                            jsonObj[k][(jsonObj[k]).length] = obj[k];
+                        } else {
+                            jsonObj[k] = [jsonObj[k], obj[k]];
+                        }
+                    }
+                    $out.val(JSON.stringify(jsonObj));
+                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURI(JSON.stringify(jsonObj)) + "/" + encodeURI($("#imageUrlText").val()));
+                }
+
                 return {
                     "init": function(width, height){
                         stage.canvas.width = width;
@@ -61,8 +82,7 @@
                     "publishRectangleEvents": function(){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent) {
-                            var startX = mouseDownEvent.stageX,
-                                startY = mouseDownEvent.stageY;
+                            var startX = mouseDownEvent.stageX, startY = mouseDownEvent.stageY;
                             mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
                                 overlay.graphics.c().f("#ffffff").r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
                                 stage.update();
@@ -71,51 +91,66 @@
                                 overlay.graphics.c();
                                 shape.graphics.f("#ffffff").r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
                                 stage.update();
-                                //x1,x2の大小とか判断しないといけない気がする
-                                jsonObj["rectangle"] = {
-                                    "x1": startX,
-                                    "y1": startY,
-                                    "x2": mouseUpEvent.stageX - startX,
-                                    "y2": mouseUpEvent.stageY - startY
-                                };
-                                $out.val(JSON.stringify(jsonObj));
+                                // update rectangle json
+                                if (startX < mouseUpEvent.stageX) {
+                                    var x1 = startX, x2 = mouseUpEvent.stageX;
+                                } else {
+                                    var x1 = mouseUpEvent.stageX, x2 = startX;
+                                }
+                                if (startY < mouseUpEvent.stageY) {
+                                    var y1 = startY, y2 = mouseUpEvent.stageY;
+                                } else {
+                                    var y1 = mouseUpEvent.stageY, y2 = startY;   
+                                }
+                                updateJson({
+                                    "rectangle": {
+                                        "x1": x1,
+                                        "y1": y1,
+                                        "x2": x2,
+                                        "y2": y2
+                                    }
+                                });
                             });
                         });
                     },
                     "publishAnnotateEvents": function(){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent) {
-                            var text = new createjs.Text("Hello World", "30px Arial", "#000000");
+                            var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
                             stage.addChild(text);
                             stage.update();
                             
-                            jsonObj["annotate"] = {
-                                "x": mouseDownEvent.stageX,
-                                "y": mouseDownEvent.stageY,
-                                "text": text.text
-                            };
-                            $out.val(JSON.stringify(jsonObj));
+                            // update annotate json
+                            updateJson({
+                                "annotate": {
+                                    "x": mouseDownEvent.stageX,
+                                    "y": mouseDownEvent.stageY,
+                                    "text": text.text
+                                }
+                            });
                         });
                     },
                     "publishTategakiEvents": function(){
                         stage.removeAllEventListeners();
                         //TODO
                         stage.addEventListener("mousedown", function(mouseDownEvent) {
-                            var text = new createjs.Text("Hello World", "30px Arial", "#000000");
+                            var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
                             text.rotation = 90;
                             stage.addChild(text);
                             stage.update();
                             
-                            jsonObj["tategaki"] = {
-                                "x": mouseDownEvent.stageX,
-                                "y": mouseDownEvent.stageY,
-                                "text": text.text
-                            };
-                            $out.val(JSON.stringify(jsonObj));
+                            // update tategaki json
+                            updateJson({
+                                "tategaki": {
+                                    "x": mouseDownEvent.stageX,
+                                    "y": mouseDownEvent.stageY,
+                                    "text": text.text
+                                }
+                            });
                         });
                     }
                 };
@@ -140,15 +175,22 @@
                         komenuka.publishRectangleEvents();
                     });
                     $("#annotateBtn").click(function(){
+                        $("#drawText").show();
                         komenuka.publishAnnotateEvents();
                     });
                     $("#tategakiBtn").click(function(){
+                        $("#drawText").show();
                         komenuka.publishTategakiEvents();
                     });
                 } else {
                     alert("please input");
                 }
                 return false;
+            });
+
+            $("#chkBtn").click(function(){
+                document.getElementById("komenukaImg").src = $("#komenukaUrlText").val();
+                //$("#komenukaImg").get().src = $("#komenukaUrlText").val();
             });
         });
         </script>

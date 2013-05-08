@@ -73,6 +73,7 @@ get '/image/v1/*/*' do |command, url|
         }
         image = Magick::Image.from_blob(response.body).shift
     rescue => e
+        logger.info url
         logger.error e.to_s
         halt 500, 'url error'
     end
@@ -80,37 +81,52 @@ get '/image/v1/*/*' do |command, url|
     begin
         if commandHash.key?('rectangle') then
             args = commandHash['rectangle']
-            draw = Magick::Draw.new
-            draw.fill = args.fetch('color', '#FFFFFF')
-            draw.rectangle(args.fetch('x1', 0).to_i, args.fetch('y1', 0).to_i, args.fetch('x2', 0).to_i, args.fetch('y2', 0).to_i)
-            draw.draw(image)
+            if args.instance_of?(Hash) then
+                args = [args]
+            end
+            for arg in args do
+                draw = Magick::Draw.new
+                draw.fill = arg.fetch('color', '#FFFFFF')
+                draw.rectangle(arg.fetch('x1', 0).to_i, arg.fetch('y1', 0).to_i, arg.fetch('x2', 0).to_i, arg.fetch('y2', 0).to_i)
+                draw.draw(image)
+            end
         end
 
         if commandHash.key?('annotate') then
             args = commandHash['annotate']
-            fontSize = args.fetch('size', 30).to_i
-            draw = Magick::Draw.new
-            draw.annotate(image, image.columns, image.rows, args.fetch('x', 0).to_i, args.fetch('y', 0).to_i + fontSize, args['text']) do
-                self.font = 'fonts/ipaexg.ttf'
-                self.fill = args.fetch('color', '#000000')
-                self.pointsize = fontSize
+            if args.instance_of?(Hash) then
+                args = [args]
+            end
+            for arg in args do
+                fontSize = arg.fetch('size', 30).to_i
+                draw = Magick::Draw.new
+                draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i, arg.fetch('y', 0).to_i + fontSize, arg['text']) do
+                    self.font = 'fonts/ipaexg.ttf'
+                    self.fill = arg.fetch('color', '#000000')
+                    self.pointsize = fontSize
+                end
             end
         end
 
         if commandHash.key?('tategaki') then
             args = commandHash['tategaki']
-            if args.key?('text') then
-                fontSize = args.fetch('size', 30).to_i
-                draw = Magick::Draw.new
-                i = 0
-                while i < args['text'].size
-                    draw.annotate(image, image.columns, image.rows, args.fetch('x', 0).to_i + fontSize, args.fetch('y', 0).to_i + fontSize * (i + 1), args['text'][i]) do
-                        self.font = 'fonts/ipaexg.ttf'
-                        self.align = Magick::CenterAlign
-                        self.fill = args.fetch('color', '#000000')
-                        self.pointsize = fontSize
+            if args.instance_of?(Hash) then
+                args = [args]
+            end
+            for arg in args do
+                if arg.key?('text') then
+                    fontSize = arg.fetch('size', 30).to_i
+                    draw = Magick::Draw.new
+                    i = 0
+                    while i < arg['text'].size
+                        draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i + fontSize, arg.fetch('y', 0).to_i + fontSize * (i + 1), args['text'][i]) do
+                            self.font = 'fonts/ipaexg.ttf'
+                            self.align = Magick::CenterAlign
+                            self.fill = arg.fetch('color', '#000000')
+                            self.pointsize = fontSize
+                        end
+                        i += 1
                     end
-                    i += 1
                 end
             end
         end

@@ -37,3 +37,6 @@ pre > span{
 	color: #fff;
 	letter-spacing: 2px;
 }
+#drawText{
+	display: none;
+}
