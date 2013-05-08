@@ -119,7 +119,7 @@ get '/image/v1/*/*' do |command, url|
                     draw = Magick::Draw.new
                     i = 0
                     while i < arg['text'].size
-                        draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i + fontSize, arg.fetch('y', 0).to_i + fontSize * (i + 1), args['text'][i]) do
+                        draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i + fontSize, arg.fetch('y', 0).to_i + fontSize * (i + 1), arg['text'][i]) do
                             self.font = 'fonts/ipaexg.ttf'
                             self.align = Magick::CenterAlign
                             self.fill = arg.fetch('color', '#000000')
