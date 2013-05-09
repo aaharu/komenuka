@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title>komenuka</title>
-        <meta content="komenuka は、動的画像変換サービスです。" name="description" />
+        <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
         <link href="/css/bootstrap.min.css" rel="stylesheet" />
         <link href="/css/komenuka.css" rel="stylesheet" />
@@ -36,9 +36,9 @@
                 <canvas id="canvas" width="0" height="0"></canvas>
             </div>
         </div>
-        <textarea id="outjson" class="input-xxlarge"></textarea><br />
+        <textarea id="outjson" class="input-xxlarge" placeholder="Output JSON"></textarea><br />
         <form class="form-inline">
-            <input id="komenukaUrlText" type="text" class="input-xxlarge" />
+            <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
             <button id="chkBtn" type="submit" class="btn">check</button>
         </form>
         <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
