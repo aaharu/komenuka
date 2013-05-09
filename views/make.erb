@@ -16,23 +16,31 @@
         </header>
         <form class="form-inline">
             <input id="imageUrlText" type="text" placeholder="Image URL" class="input-large" />
-            <button id="imageUrlBtn" type="submit" class="btn">読み込む</button>
+            <button id="imageUrlBtn" type="submit" class="btn btn-primary">読み込む</button>
         </form>
-        <div>
-            <div>
+        <div class="row-fluid">
+            <div class="span2">
                 <div>
-                    <button id="rectangleBtn">rectangle</button>
+                    <button id="rectangleBtn" class="btn">■</button>
                 </div>
+                <hr />
                 <div>
-                    <button id="annotateBtn">annotate</button>
-                    <button id="tategakiBtn">tategaki(dekitenaiyo)</button>
-                    <input id="drawText" type="text" />
+                    <button id="annotateBtn" class="btn">横</button>
+                    <button id="tategakiBtn" class="btn">縦</button>
                 </div>
+                <hr />
+                <input id="colorPicker" class="color input-mini" />
             </div>
-            <canvas id="canvas" width="0" height="0"></canvas>
+            <div class="span10">
+                <input id="drawText" type="text" placeholder="描画テキスト" /><br />
+                <canvas id="canvas" width="0" height="0"></canvas>
+            </div>
         </div>
-        <textarea id="outjson"></textarea><br />
-        <input id="komenukaUrlText" type="text" /><button id="chkBtn">check</button>
+        <textarea id="outjson" class="input-xxlarge"></textarea><br />
+        <form class="form-inline">
+            <input id="komenukaUrlText" type="text" class="input-xxlarge" />
+            <button id="chkBtn" type="submit" class="btn">check</button>
+        </form>
         <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
         <footer>
             using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
@@ -44,13 +52,14 @@
         <!--[if gte IE 9]><!-->
             <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.0.min.js"></script>
         <!--<![endif]-->
+        <script src="/js/jscolor/jscolor.js"></script>
         <script src="http://code.createjs.com/easeljs-0.6.0.min.js"></script>
         <script type="text/javascript">
         $(function(){
             "use strict";
             var KomenukaCanvas = function KomenukaCanvas(stage){
                 var shape, overlay, jsonObj;
-                var $out = $("#outjson"), $outUrl = $("#komenukaUrlText");
+                var $out = $("#outjson"), $outUrl = $("#komenukaUrlText"), $color = $("#colorPicker");
 
                 function updateJson(obj){
                     for (var k in obj) {
@@ -63,7 +72,7 @@
                         }
                     }
                     $out.val(JSON.stringify(jsonObj));
-                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURI(JSON.stringify(jsonObj)) + "/" + encodeURI($("#imageUrlText").val()));
+                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent($("#imageUrlText").val()));
                 }
 
                 return {
@@ -81,15 +90,15 @@
                     },
                     "publishRectangleEvents": function(){
                         stage.removeAllEventListeners();
-                        stage.addEventListener("mousedown", function(mouseDownEvent) {
+                        stage.addEventListener("mousedown", function(mouseDownEvent){
                             var startX = mouseDownEvent.stageX, startY = mouseDownEvent.stageY;
-                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
-                                overlay.graphics.c().f("#ffffff").r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
+                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                overlay.graphics.c().f("#" + $color.val()).r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
                                 stage.update();
                             });
-                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
+                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
                                 overlay.graphics.c();
-                                shape.graphics.f("#ffffff").r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
+                                shape.graphics.f("#" + $color.val()).r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
                                 stage.update();
                                 // update rectangle json
                                 if (startX < mouseUpEvent.stageX) {
@@ -102,54 +111,68 @@
                                 } else {
                                     var y1 = mouseUpEvent.stageY, y2 = startY;   
                                 }
-                                updateJson({
-                                    "rectangle": {
-                                        "x1": x1,
-                                        "y1": y1,
-                                        "x2": x2,
-                                        "y2": y2
-                                    }
-                                });
+                                var obj = {"x1": x1, "y1": y1, "x2": x2, "y2": y2};
+                                if (!$color.val() || $color.val() !== "FFFFFF") {
+                                    obj["color"] = "#" + $color.val();
+                                }
+                                updateJson({"rectangle": obj});
                             });
                         });
                     },
                     "publishAnnotateEvents": function(){
                         stage.removeAllEventListeners();
-                        stage.addEventListener("mousedown", function(mouseDownEvent) {
+                        stage.addEventListener("mousedown", function(mouseDownEvent){
                             var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
+                            text.alpha = 0.6;
                             stage.addChild(text);
                             stage.update();
-                            
-                            // update annotate json
-                            updateJson({
-                                "annotate": {
-                                    "x": mouseDownEvent.stageX,
-                                    "y": mouseDownEvent.stageY,
-                                    "text": text.text
-                                }
+                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                text.x = mouseMoveEvent.stageX;
+                                text.y = mouseMoveEvent.stageY;
+                                stage.update();
+                            });
+                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                text.alpha = 1;
+                                stage.update();
+                                // update annotate json
+                                updateJson({
+                                    "annotate": {
+                                        "x": mouseDownEvent.stageX,
+                                        "y": mouseDownEvent.stageY,
+                                        "text": text.text
+                                    }
+                                });
                             });
                         });
                     },
                     "publishTategakiEvents": function(){
                         stage.removeAllEventListeners();
-                        //TODO
-                        stage.addEventListener("mousedown", function(mouseDownEvent) {
+                        stage.addEventListener("mousedown", function(mouseDownEvent){
                             var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
+                            text.alpha = 0.6;
                             text.rotation = 90;
                             stage.addChild(text);
                             stage.update();
-                            
-                            // update tategaki json
-                            updateJson({
-                                "tategaki": {
-                                    "x": mouseDownEvent.stageX,
-                                    "y": mouseDownEvent.stageY,
-                                    "text": text.text
-                                }
+                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                text.x = mouseMoveEvent.stageX;
+                                text.y = mouseMoveEvent.stageY;
+                                stage.update();
+                            });
+                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                text.alpha = 1;
+                                stage.update();
+                                // update tategaki json
+                                updateJson({
+                                    "tategaki": {
+                                        "x": mouseDownEvent.stageX,
+                                        "y": mouseDownEvent.stageY,
+                                        "text": text.text
+                                    }
+                                });
                             });
                         });
                     }
@@ -175,11 +198,11 @@
                         komenuka.publishRectangleEvents();
                     });
                     $("#annotateBtn").click(function(){
-                        $("#drawText").show();
+                        //$("#drawText").show();
                         komenuka.publishAnnotateEvents();
                     });
                     $("#tategakiBtn").click(function(){
-                        $("#drawText").show();
+                        //$("#drawText").show();
                         komenuka.publishTategakiEvents();
                     });
                 } else {
@@ -191,6 +214,7 @@
             $("#chkBtn").click(function(){
                 document.getElementById("komenukaImg").src = $("#komenukaUrlText").val();
                 //$("#komenukaImg").get().src = $("#komenukaUrlText").val();
+                return false;
             });
         });
         </script>
