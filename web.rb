@@ -8,7 +8,7 @@ require 'dalli'
 require 'set'
 
 use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js'], :root => 'public'
-IMAGE_NUM_MAX = 20
+IMAGE_NUM_MAX = 15
 
 get '/' do
     begin
