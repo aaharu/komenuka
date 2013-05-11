@@ -238,3 +238,11 @@ get '/image/v1/*/*' do |command, url|
     cache_control :public
     image.to_blob
 end
+
+get '/clear/mem' do
+    dc = Dalli::Client.new(
+        ENV['MEMCACHIER_SERVERS'],
+        {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+    )
+    dc.flush
+end
