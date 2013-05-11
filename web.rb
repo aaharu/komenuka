@@ -240,9 +240,16 @@ get '/image/v1/*/*' do |command, url|
 end
 
 get '/clear/mem' do
-    dc = Dalli::Client.new(
-        ENV['MEMCACHIER_SERVERS'],
-        {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
-    )
-    dc.flush
+    begin
+        dc = Dalli::Client.new(
+            ENV['MEMCACHIER_SERVERS'],
+            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+        )
+        dc.flush
+    rescue Exception => e
+        logger.error e.to_s
+        halt 500, 'NG'
+    end
+
+    'OK'
 end
