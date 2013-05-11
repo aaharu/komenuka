@@ -10,74 +10,7 @@ require 'set'
 use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
-get '/' do
-    begin
-        dc = Dalli::Client.new(
-            ENV['MEMCACHIER_SERVERS'],
-            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
-        )
-        imageSet = dc.get('set')
-    rescue => e
-        logger.warn e.to_s
-    end
-    unless imageSet
-        imageSet = Set.new
-    end
-    erb :index, :locals => {:images => imageSet}
-end
-
-get '/readme' do
-    erb :readme
-end
-
-get '/make' do
-    erb :make
-end
-
-get '/proxy' do
-    unless params.has_key?('url')
-        halt 400, 'bad parameter'
-    end
-
-    begin
-        uri = URI.parse(params['url'])
-        response = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-    rescue => e
-        logger.error e.to_s
-        halt 500, 'url error'
-    end
-
-    content_type response.content_type
-    #同ドメインになるのでつけなくてもいいけど
-    headers['Access-Control-Allow-Origin'] = '*'
-    response.body
-end
-
-get '/image/v1/*/*' do |command, url|
-    begin
-        commandHash = JSON.parse(command)
-    rescue => e
-        logger.error e.to_s
-        halt 400, 'command error'
-    end
-
-    begin
-        unless url.index('://') then
-            url = url.sub(':/', '://')
-        end
-        uri = URI.parse(url)
-        response = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-        image = Magick::Image.from_blob(response.body).shift
-    rescue => e
-        logger.info url
-        logger.error e.to_s
-        halt 500, 'url error'
-    end
-
+def editImage(command, commandHash, image)
     begin
         if commandHash.key?('rectangle') then
             args = commandHash['rectangle']
@@ -130,31 +63,165 @@ get '/image/v1/*/*' do |command, url|
                 end
             end
         end
-    rescue => e
+    rescue Exception => e
         logger.error e.to_s
         halt 500, 'image error'
     end
 
+    begin
+        if command then
+            dc = Dalli::Client.new(
+                ENV['MEMCACHIER_SERVERS'],
+                {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+            )
+            imageSet = dc.get('set')
+            unless imageSet
+                imageSet = Set.new
+            end
+            if imageSet.length > IMAGE_NUM_MAX
+                tmp = imageSet.to_a.shift
+                tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+                imageSet = Set.new(tmp)
+            else
+                imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+            end
+            dc.set('set', imageSet)
+        end
+    rescue Exception => e
+        logger.warn e.to_s
+    end
+end
+
+get '/' do
     begin
         dc = Dalli::Client.new(
             ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
         imageSet = dc.get('set')
-        unless imageSet
-            imageSet = Set.new
-        end
-        if imageSet.length > IMAGE_NUM_MAX
-            tmp = imageSet.to_a.shift
-            tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
-            imageSet = Set.new(tmp)
-        else
-            imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
-        end
-        dc.set('set', imageSet)
-    rescue => e
+    rescue Exception => e
         logger.warn e.to_s
     end
+    unless imageSet
+        imageSet = Set.new
+    end
+    erb :index, :locals => {:images => imageSet}
+end
+
+get '/readme' do
+    erb :readme
+end
+
+get '/make' do
+    erb :make
+end
+
+get '/proxy' do
+    unless params.has_key?('url')
+        halt 400, 'bad parameter'
+    end
+
+    begin
+        uri = URI.parse(params['url'])
+        response = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+    rescue Exception => e
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    content_type response.content_type
+    #同ドメインになるのでつけなくてもいいけど
+    headers['Access-Control-Allow-Origin'] = '*'
+    response.body
+end
+
+get '/image/v1' do
+    command = params['command']
+    url = params['url']
+
+    image = nil, response = nil, commandHash = nil
+    if url then
+        begin
+            uri = URI.parse(url)
+            response = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
+            image = Magick::Image.from_blob(response.body).shift
+        rescue Exception => e
+            logger.info url
+            logger.error e.to_s
+            halt 500, 'url error'
+        end
+    else
+        halt 400, 'no url parameter'
+    end
+
+    if command then
+        begin
+            commandHash = JSON.parse(command)
+        rescue Exception => e
+            logger.error e.to_s
+            halt 400, 'command error'
+        end
+    end
+
+    begin
+        unless url.index('http') then
+            url = 'http://' + url
+        else
+            unless url.index('://') then
+                url = url.sub(':/', '://')
+            end
+        end
+        uri = URI.parse(url)
+        response = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+        image = Magick::Image.from_blob(response.body).shift
+    rescue Exception => e
+        logger.info url
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    editImage(command, commandHash, image)
+
+    headers['Access-Control-Allow-Origin'] = '*'
+    content_type response.content_type
+    cache_control :public
+    image.to_blob
+end
+
+get '/image/v1/*/*' do |command, url|
+    begin
+        commandHash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+
+    begin
+        unless url.index('http') then
+            url = 'http://' + url
+        else
+            unless url.index('://') then
+                url = url.sub(':/', '://')
+            end
+        end
+        uri = URI.parse(url)
+        response = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+        image = Magick::Image.from_blob(response.body).shift
+    rescue Exception => e
+        logger.info url
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    editImage(command, commandHash, image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type response.content_type

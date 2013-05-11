@@ -32,7 +32,7 @@
                 <input id="colorPicker" class="color input-mini" />
             </div>
             <div class="span10">
-                <input id="drawText" type="text" placeholder="描画テキスト" /><br />
+                <textarea id="drawText" placeholder="描画テキスト"></textarea><br />
                 <canvas id="canvas" width="0" height="0"></canvas>
             </div>
         </div>
@@ -54,6 +54,7 @@
         <!--<![endif]-->
         <script src="/js/jscolor/jscolor.js"></script>
         <script src="http://code.createjs.com/easeljs-0.6.0.min.js"></script>
+        <script src="/js/TextEx.js"></script>
         <script type="text/javascript">
         $(function(){
             "use strict";
@@ -62,6 +63,7 @@
                 var $out = $("#outjson"), $outUrl = $("#komenukaUrlText"), $color = $("#colorPicker");
 
                 function updateJson(obj){
+                    //Objectの結合
                     for (var k in obj) {
                         if (jsonObj[k] === undefined) {
                             jsonObj[k] = obj[k];
@@ -71,8 +73,14 @@
                             jsonObj[k] = [jsonObj[k], obj[k]];
                         }
                     }
+                    //HTMLの更新
                     $out.val(JSON.stringify(jsonObj));
-                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent($("#imageUrlText").val()));
+                    var url = $("#imageUrlText").val();
+                    var regexp = new RegExp("^http://", "i");
+                    if (regexp.test(url)) {
+                        url = url.substring(7);
+                    }
+                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(url));
                 }
 
                 return {
@@ -150,11 +158,12 @@
                     "publishTategakiEvents": function(){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent){
-                            var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
+                            var text = new createjs.TextEx($("#drawText").val(), "30px Arial", "#000000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
                             text.alpha = 0.6;
-                            text.rotation = 90;
+                            text.direction = "vertical";
+                            text.textAlign = "center";
                             stage.addChild(text);
                             stage.update();
                             mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
@@ -213,7 +222,6 @@
 
             $("#chkBtn").click(function(){
                 document.getElementById("komenukaImg").src = $("#komenukaUrlText").val();
-                //$("#komenukaImg").get().src = $("#komenukaUrlText").val();
                 return false;
             });
         });
