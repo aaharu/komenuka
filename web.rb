@@ -10,7 +10,7 @@ require 'set'
 use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
-def editImage(command, commandHash, image)
+def editImage(command, url, commandHash, image)
     begin
         if commandHash.key?('rectangle') then
             args = commandHash['rectangle']
@@ -196,7 +196,7 @@ get '/image/v1' do
         halt 500, 'url error'
     end
 
-    editImage(command, commandHash, image)
+    editImage(command, url, commandHash, image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type response.content_type
@@ -231,7 +231,7 @@ get '/image/v1/*/*' do |command, url|
         halt 500, 'url error'
     end
 
-    editImage(command, commandHash, image)
+    editImage(command, url, commandHash, image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type response.content_type
