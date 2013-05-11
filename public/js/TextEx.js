@@ -350,11 +350,11 @@ var p = TextEx.prototype = new createjs.DisplayObject();
 			var lineHeight = this.lineHeight||this.getMeasuredLineHeight();
 			if (this.outline) {
 				for (var i=0, l=text.length; i<l; ++i) {
-					ctx.strokeText(text.charAt(i), -y - lineHeight, i*lineHeight, this.maxWidth||0xFFFF);
+					ctx.strokeText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
 				}
 			} else {
 				for (var i=0, l=text.length; i<l; ++i) {
-					ctx.fillText(text.charAt(i), -y - lineHeight, i*lineHeight, this.maxWidth||0xFFFF);
+					ctx.fillText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
 				}
 			}
 		} else {

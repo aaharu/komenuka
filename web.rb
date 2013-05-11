@@ -31,12 +31,17 @@ def editImage(command, commandHash, image)
                 args = [args]
             end
             for arg in args do
-                fontSize = arg.fetch('size', 30).to_i
-                draw = Magick::Draw.new
-                draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i, arg.fetch('y', 0).to_i + fontSize, arg['text']) do
-                    self.font = 'fonts/ipaexg.ttf'
-                    self.fill = arg.fetch('color', '#000000')
-                    self.pointsize = fontSize
+                lines = arg['text'].split
+                j = 1
+                for line in lines do
+                    fontSize = arg.fetch('size', 30).to_i
+                    draw = Magick::Draw.new
+                    draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i, arg.fetch('y', 0).to_i + fontSize * j, line) do
+                        self.font = 'fonts/ipaexg.ttf'
+                        self.fill = arg.fetch('color', '#000000')
+                        self.pointsize = fontSize
+                    end
+                    j += 1
                 end
             end
         end
@@ -48,24 +53,29 @@ def editImage(command, commandHash, image)
             end
             for arg in args do
                 if arg.key?('text') then
-                    fontSize = arg.fetch('size', 30).to_i
-                    draw = Magick::Draw.new
-                    i = 0
-                    while i < arg['text'].size
-                        draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i + fontSize, arg.fetch('y', 0).to_i + fontSize * (i + 1), arg['text'][i]) do
-                            self.font = 'fonts/ipaexg.ttf'
-                            self.align = Magick::CenterAlign
-                            self.fill = arg.fetch('color', '#000000')
-                            self.pointsize = fontSize
+                    lines = arg['text'].split
+                    j = 0
+                    for line in lines do
+                        fontSize = arg.fetch('size', 30).to_i
+                        draw = Magick::Draw.new
+                        i = 0
+                        while i < line.size
+                            draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i - fontSize * j, arg.fetch('y', 0).to_i + fontSize * (i + 1), line[i]) do
+                                self.font = 'fonts/ipaexg.ttf'
+                                self.align = Magick::CenterAlign
+                                self.fill = arg.fetch('color', '#000000')
+                                self.pointsize = fontSize
+                            end
+                            i += 1
                         end
-                        i += 1
+                        j += 1
                     end
                 end
             end
         end
     rescue Exception => e
         logger.error e.to_s
-        halt 500, 'image error'
+        halt 500, 'image edit error'
     end
 
     begin
