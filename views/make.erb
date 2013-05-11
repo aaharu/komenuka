@@ -10,38 +10,43 @@
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
-        <header>
-            <h1>komenuka</h1>
-            <p class="lead">URL for edited image.</p>
+        <header class="navbar">
+            <div class="navbar-inner">
+                <a class="brand" href="/">komenuka</a>
+                <ul class="nav">
+                    <li><a href="/readme">readme</a></li>
+                    <li class="active"><a href="#">editor</a></li>
+                </ul>
+            </div>
         </header>
-        <form class="form-inline">
-            <input id="imageUrlText" type="text" placeholder="Image URL" class="input-large" />
-            <button id="imageUrlBtn" type="submit" class="btn btn-primary">読み込む</button>
-        </form>
-        <div class="row-fluid">
-            <div class="span2">
-                <div>
+        <main role="main">
+            <form class="form-inline">
+                <input id="imageUrlText" type="text" placeholder="Image URL" class="input-large" />
+                <button id="imageUrlBtn" type="submit" class="btn btn-primary">読み込む</button>
+            </form>
+            <div class="row-fluid">
+                <div class="span2">
+                    <button id="undoBtn" class="btn">元に戻す</button>
+                    <hr />
                     <button id="rectangleBtn" class="btn">■</button>
-                </div>
-                <hr />
-                <div>
+                    <hr />
                     <button id="annotateBtn" class="btn">横</button>
                     <button id="tategakiBtn" class="btn">縦</button>
+                    <hr />
+                    <input id="colorPicker" class="color input-mini" />
                 </div>
-                <hr />
-                <input id="colorPicker" class="color input-mini" />
+                <div class="span10">
+                    <textarea id="drawText" placeholder="描画テキスト"></textarea><br />
+                    <canvas id="canvas" width="0" height="0"></canvas>
+                </div>
             </div>
-            <div class="span10">
-                <textarea id="drawText" placeholder="描画テキスト"></textarea><br />
-                <canvas id="canvas" width="0" height="0"></canvas>
-            </div>
-        </div>
-        <textarea id="outjson" class="input-xxlarge" placeholder="Output JSON"></textarea><br />
-        <form class="form-inline">
-            <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
-            <button id="chkBtn" type="submit" class="btn">check</button>
-        </form>
-        <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
+            <textarea id="outjson" class="input-xxlarge" placeholder="Output JSON"></textarea><br />
+            <form class="form-inline">
+                <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
+                <button id="chkBtn" type="submit" class="btn">check</button>
+            </form>
+            <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
+        </main>
         <footer>
             using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
             <small>&#169; aaharu</small>
@@ -60,6 +65,7 @@
             "use strict";
             var KomenukaCanvas = function KomenukaCanvas(stage){
                 var shape, overlay, jsonObj;
+                var jsonObjHistory = new Array();
                 var $out = $("#outjson"), $outUrl = $("#komenukaUrlText"), $color = $("#colorPicker");
 
                 function updateJson(obj){
@@ -73,6 +79,8 @@
                             jsonObj[k] = [jsonObj[k], obj[k]];
                         }
                     }
+                    //add history
+                    jsonObjHistory[jsonObjHistory.length] = $.extend(true, {}, jsonObj);
                     //HTMLの更新
                     $out.val(JSON.stringify(jsonObj));
                     var url = $("#imageUrlText").val();
@@ -83,17 +91,67 @@
                     $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(url));
                 }
 
+                function drawFromJson(json){
+                    for (var command in json) {
+                        if (json[command].length) {
+                            var args = json[command];
+                        } else {
+                            var args = new Array(json[command]);
+                        }
+                        switch (command) {
+                            case "rectangle":
+                            for (var i = 0, l = args.length; i < l; ++i) {
+                                var color = args[i]["color"] ? "#" + args[i]["color"] : "#fff";
+                                var x1 = args[i]["x1"] ? args[i]["x1"] : 0;
+                                var x2 = args[i]["x2"] ? args[i]["x2"] : 0;
+                                var y1 = args[i]["y1"] ? args[i]["y1"] : 0;
+                                var y2 = args[i]["y2"] ? args[i]["y2"] : 0;
+                                shape.graphics.f(color).r(x1, y1, x2 - x1, y2 - y1).ef();
+                                stage.update();
+                            }
+                            break;
+                            case "annotate":
+                            for (var i = 0, l = args.length; i < l; ++i) {
+                                var t = args[i]["text"] ? args[i]["text"] : "";
+                                var x = args[i]["x"] ? args[i]["x"] : 0;
+                                var y = args[i]["y"] ? args[i]["y"] : 0;
+                                var text = new createjs.Text(t, "30px Arial", "#000");
+                                text.x = x;
+                                text.y = y;
+                                stage.addChild(text);
+                                stage.update();
+                            }
+                            break;
+                            case "tategaki":
+                            for (var i = 0, l = args.length; i < l; ++i) {
+                                var t = args[i]["text"] ? args[i]["text"] : "";
+                                var x = args[i]["x"] ? args[i]["x"] : 0;
+                                var y = args[i]["y"] ? args[i]["y"] : 0;
+                                var text = new createjs.TextEx(t, "30px Arial", "#000");
+                                text.x = x;
+                                text.y = y;
+                                text.direction = "vertical";
+                                text.textAlign = "center";
+                                stage.addChild(text);
+                                stage.update();
+                            }
+                            break;
+                        }
+                    }
+                }
+
                 return {
-                    "init": function(width, height){
-                        stage.canvas.width = width;
-                        stage.canvas.height = height;
+                    "init": function(bmp){
+                        stage.canvas.width = bmp.image.width;
+                        stage.canvas.height = bmp.image.height;
                         shape = new createjs.Shape();
                         overlay = new createjs.Shape();
                         overlay.alpha = 0.7;
+                        stage.addChild(bmp);
                         stage.addChild(shape);
                         stage.addChild(overlay);
+                        stage.update();
                         jsonObj = {};
-
                         return this;
                     },
                     "publishRectangleEvents": function(){
@@ -184,9 +242,24 @@
                                 });
                             });
                         });
+                    },
+                    "undo": function(){
+                        if (jsonObjHistory.length > 0) {
+                            jsonObjHistory.pop();
+                            drawFromJson(jsonObjHistory[jsonObjHistory.length - 1]);
+                        }
                     }
                 };
             };
+
+            $("#outjson").change(function(){
+                var url = $("#imageUrlText").val();
+                var regexp = new RegExp("^http://", "i");
+                if (regexp.test(url)) {
+                    url = url.substring(7);
+                }
+                $("#komenukaUrlText").val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(url));
+            });
 
             $("#imageUrlBtn").click(function(){
                 var url = $("#imageUrlText").val();
@@ -194,12 +267,9 @@
                     var stage = new createjs.Stage("canvas"),
                         img = new Image(),
                         komenuka = new KomenukaCanvas(stage);
-                    var bmp = new createjs.Bitmap(img);
                     img.crossOrigin = "Anonymous";
                     img.onload = function(){
-                        stage.addChild(bmp);
-                        komenuka.init(img.width, img.height);
-                        stage.update();
+                        komenuka.init(new createjs.Bitmap(img));
                     }
                     img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
 
@@ -207,12 +277,14 @@
                         komenuka.publishRectangleEvents();
                     });
                     $("#annotateBtn").click(function(){
-                        //$("#drawText").show();
                         komenuka.publishAnnotateEvents();
                     });
                     $("#tategakiBtn").click(function(){
-                        //$("#drawText").show();
                         komenuka.publishTategakiEvents();
+                    });
+                    $("#undoBtn").click(function(){
+                        komenuka.init(new createjs.Bitmap(img));
+                        komenuka.undo();
                     });
                 } else {
                     alert("please input");
