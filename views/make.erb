@@ -20,10 +20,12 @@
             </div>
         </header>
         <main role="main">
+            <h3>1. 編集する画像を読み込む</h3>
             <form class="form-inline">
                 <input id="imageUrlText" type="text" placeholder="Image URL" class="input-large" />
                 <button id="imageUrlBtn" type="submit" class="btn btn-primary">読み込む</button>
             </form>
+            <h3>2. 画像を編集する</h3>
             <div class="row-fluid">
                 <div class="span2">
                     <button id="undoBtn" class="btn" disabled="disabled">元に戻す</button>
@@ -35,13 +37,17 @@
                     <hr />
                     <input id="colorPicker" class="color input-mini" />
                     <hr />
-                    <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
+                    <div class="input-append">
+                        <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
+                        <span class="add-on">px</span>
+                    </div>
                     <textarea id="drawText" class="span12" placeholder="描画テキスト" disabled="disabled"></textarea>
                 </div>
                 <div class="span10">
                     <canvas id="canvas" width="0" height="0"></canvas>
                 </div>
             </div>
+            <h3>3. 編集後の画像URLの画像を確認する</h3>
             <textarea id="outjson" class="input-xxlarge" placeholder="Output JSON"></textarea><br />
             <form class="form-inline">
                 <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
