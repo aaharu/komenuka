@@ -1,3 +1,4 @@
+@charset "utf-8";
 body{
 	position: relative;
 	height: 100%;
@@ -37,6 +38,10 @@ pre > span{
 	color: #fff;
 	letter-spacing: 2px;
 }
-/*#drawText{
-	display: none;
-}*/
+#canvas{
+	border: 2px solid #000;
+	cursor: crosshair;
+}
+#canvas:active{
+	cursor: crosshair;
+}

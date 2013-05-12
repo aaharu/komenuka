@@ -7,7 +7,7 @@ require 'json'
 require 'dalli'
 require 'set'
 
-use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js'], :root => 'public'
+use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
 def editImage(command, url, commandHash, image)

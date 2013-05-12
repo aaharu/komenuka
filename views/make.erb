@@ -6,7 +6,7 @@
         <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
         <link href="/css/bootstrap.min.css" rel="stylesheet" />
-        <link href="/css/komenuka.css?1" rel="stylesheet" />
+        <link href="/css/komenuka.css?2" rel="stylesheet" />
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
@@ -26,17 +26,19 @@
             </form>
             <div class="row-fluid">
                 <div class="span2">
-                    <button id="undoBtn" class="btn">元に戻す</button>
+                    <button id="undoBtn" class="btn" disabled="disabled">元に戻す</button>
                     <hr />
-                    <button id="rectangleBtn" class="btn">■</button>
+                    <button id="rectangleBtn" class="btn" disabled="disabled"><i class="icon-edit"></i>四角</button>
                     <hr />
-                    <button id="annotateBtn" class="btn">横</button>
-                    <button id="tategakiBtn" class="btn">縦</button>
+                    <button id="annotateBtn" class="btn" disabled="disabled"><i class="icon-text-width"></i>横書き</button>
+                    <button id="tategakiBtn" class="btn" disabled="disabled"><i class="icon-text-height"></i>縦書き</button>
                     <hr />
                     <input id="colorPicker" class="color input-mini" />
+                    <hr />
+                    <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
+                    <textarea id="drawText" class="span12" placeholder="描画テキスト"></textarea>
                 </div>
                 <div class="span10">
-                    <textarea id="drawText" placeholder="描画テキスト"></textarea><br />
                     <canvas id="canvas" width="0" height="0"></canvas>
                 </div>
             </div>
@@ -185,10 +187,10 @@
                             });
                         });
                     },
-                    "publishAnnotateEvents": function(){
+                    "publishAnnotateEvents": function(jqStr, jqSize){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent){
-                            var text = new createjs.Text($("#drawText").val(), "30px Arial", "#000000");
+                            var text = new createjs.Text(jqStr.val(), jqSize.val() + "px Arial", "#000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
                             text.alpha = 0.6;
@@ -213,10 +215,10 @@
                             });
                         });
                     },
-                    "publishTategakiEvents": function(){
+                    "publishTategakiEvents": function(jqStr, jqSize){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent){
-                            var text = new createjs.TextEx($("#drawText").val(), "30px Arial", "#000000");
+                            var text = new createjs.TextEx(jqStr.val(), jqSize.val() + "px Arial", "#000");
                             text.x = mouseDownEvent.stageX;
                             text.y = mouseDownEvent.stageY;
                             text.alpha = 0.6;
@@ -252,7 +254,16 @@
                 };
             };
 
-            $("#outjson").change(function(){
+            var $outjson = $("#outjson"),
+                $rectangleBtn = $("#rectangleBtn"),
+                $annotateBtn = $("#annotateBtn"),
+                $tategakiBtn = $("#tategakiBtn"),
+                $undoBtn = $("#undoBtn"),
+                $colorPicker = $("#colorPicker"),
+                $drawText = $("#drawText"),
+                $textSize = $("#textSize");
+
+            $outjson.change(function(){
                 var url = $("#imageUrlText").val();
                 var regexp = new RegExp("^http://", "i");
                 if (regexp.test(url)) {
@@ -262,6 +273,13 @@
             });
 
             $("#imageUrlBtn").click(function(){
+                $rectangleBtn.attr({"disabled": "disabled"});
+                $annotateBtn.attr({"disabled": "disabled"});
+                $tategakiBtn.attr({"disabled": "disabled"});
+                $undoBtn.attr({"disabled": "disabled"});
+                $drawText.attr({"disabled": "disabled"});
+                $textSize.attr({"disabled": "disabled"});
+
                 var url = $("#imageUrlText").val();
                 if (url) {
                     var stage = new createjs.Stage("canvas"),
@@ -270,19 +288,36 @@
                     img.crossOrigin = "Anonymous";
                     img.onload = function(){
                         komenuka.init(new createjs.Bitmap(img));
+                        $outjson.val("");
+                        $rectangleBtn.removeAttr("disabled");
+                        $annotateBtn.removeAttr("disabled");
+                        $tategakiBtn.removeAttr("disabled");
+                        $undoBtn.removeAttr("disabled");
                     }
                     img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
 
-                    $("#rectangleBtn").click(function(){
+                    $rectangleBtn.click(function(){
+                        $colorPicker.val("FFFFFF");
+                        $colorPicker.css({"background-color": "#fff", "color": "#000"});
+                        $drawText.attr({"disabled": "disabled"});
+                        $textSize.attr({"disabled": "disabled"});
                         komenuka.publishRectangleEvents();
                     });
-                    $("#annotateBtn").click(function(){
-                        komenuka.publishAnnotateEvents();
+                    $annotateBtn.click(function(){
+                        $colorPicker.val("000000");
+                        $colorPicker.css({"background-color": "#000", "color": "#fff"});
+                        $drawText.removeAttr("disabled");
+                        $textSize.removeAttr("disabled");
+                        komenuka.publishAnnotateEvents($drawText, $textSize);
                     });
-                    $("#tategakiBtn").click(function(){
-                        komenuka.publishTategakiEvents();
+                    $tategakiBtn.click(function(){
+                        $colorPicker.val("000000");
+                        $colorPicker.css({"background-color": "#000", "color": "#fff"});
+                        $drawText.removeAttr("disabled");
+                        $textSize.removeAttr("disabled");
+                        komenuka.publishTategakiEvents($drawText, $textSize);
                     });
-                    $("#undoBtn").click(function(){
+                    $undoBtn.click(function(){
                         komenuka.init(new createjs.Bitmap(img));
                         komenuka.undo();
                     });
