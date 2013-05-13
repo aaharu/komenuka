@@ -178,7 +178,8 @@ get '/image/v1' do
     end
 
     begin
-        unless url.index('http') then
+        i = url.index('http')
+        unless i || i != 0 then
             url = 'http://' + url
         else
             unless url.index('://') then
