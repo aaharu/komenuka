@@ -133,6 +133,8 @@ get '/proxy' do
 
     begin
         uri = URI.parse(params['url'])
+        #if /^.+¥.jpg¥.to$/ =~ uri.host
+        #end
         response = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }

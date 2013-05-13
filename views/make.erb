@@ -53,10 +53,13 @@
                 <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
                 <button id="chkBtn" type="submit" class="btn">check</button>
             </form>
-            <img id="komenukaImg" src="http://placehold.jp/150x50.png" />
+            <dl>
+                <dt>編集後画像</dt>
+                <dd><img id="komenukaImg" src="http://placehold.jp/150x50.png" /></dd>
+            </dl>
         </main>
         <footer>
-            using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
+            using <a href="http://ossipedia.ipa.go.jp/ipafont/index.html">IPAex Font (IPAex Gothic)</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a>, <a href="http://jscolor.com/">jscolor</a>, <a href="http://jonobr1.github.io/stalactite/">stalactite</a>, <a href="http://www.createjs.com/#!/EaselJS">EaselJS</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
             <small>&#169; aaharu</small>
         </footer>
         <!--[if lt IE 9]>
@@ -123,7 +126,8 @@
                                 var t = args[i]["text"] ? args[i]["text"] : "";
                                 var x = args[i]["x"] ? args[i]["x"] : 0;
                                 var y = args[i]["y"] ? args[i]["y"] : 0;
-                                var text = new createjs.Text(t, "30px Arial", "#000");
+                                var size = args[i]["size"] ? args[i]["size"] : "30";
+                                var text = new createjs.Text(t, size + "px Arial", "#000");
                                 text.x = x;
                                 text.y = y;
                                 stage.addChild(text);
@@ -135,7 +139,8 @@
                                 var t = args[i]["text"] ? args[i]["text"] : "";
                                 var x = args[i]["x"] ? args[i]["x"] : 0;
                                 var y = args[i]["y"] ? args[i]["y"] : 0;
-                                var text = new createjs.TextEx(t, "30px Arial", "#000");
+                                var size = args[i]["size"] ? args[i]["size"] : "30";
+                                var text = new createjs.TextEx(t, size + "px Arial", "#000");
                                 text.x = x;
                                 text.y = y;
                                 text.direction = "vertical";
@@ -150,6 +155,7 @@
 
                 return {
                     "init": function(bmp){
+                        stage.removeAllEventListeners();
                         stage.canvas.width = bmp.image.width;
                         stage.canvas.height = bmp.image.height;
                         shape = new createjs.Shape();
@@ -185,7 +191,19 @@
                                 } else {
                                     var y1 = mouseUpEvent.stageY, y2 = startY;   
                                 }
-                                var obj = {"x1": x1, "y1": y1, "x2": x2, "y2": y2};
+                                var obj = {};
+                                if (x1 !== 0) {
+                                    obj["x1"] = x1;
+                                }
+                                if (x2 !== 0) {
+                                    obj["x2"] = x2;
+                                }
+                                if (y1 !== 0) {
+                                    obj["y1"] = y1;
+                                }
+                                if (y2 !== 0) {
+                                    obj["y2"] = y2;
+                                }
                                 if (!$color.val() || $color.val() !== "FFFFFF") {
                                     obj["color"] = "#" + $color.val();
                                 }
@@ -196,59 +214,73 @@
                     "publishAnnotateEvents": function(jqStr, jqSize){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent){
-                            var text = new createjs.Text(jqStr.val(), jqSize.val() + "px Arial", "#000");
-                            text.x = mouseDownEvent.stageX;
-                            text.y = mouseDownEvent.stageY;
-                            text.alpha = 0.6;
-                            stage.addChild(text);
-                            stage.update();
-                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
-                                text.x = mouseMoveEvent.stageX;
-                                text.y = mouseMoveEvent.stageY;
+                            if (jqStr.val()) {
+                                var size = jqSize.val();
+                                var text = new createjs.Text(jqStr.val(), size + "px Arial", "#000");
+                                text.x = mouseDownEvent.stageX;
+                                text.y = mouseDownEvent.stageY;
+                                text.alpha = 0.6;
+                                stage.addChild(text);
                                 stage.update();
-                            });
-                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
-                                text.alpha = 1;
-                                stage.update();
-                                // update annotate json
-                                updateJson({
-                                    "annotate": {
-                                        "x": mouseUpEvent.stageX,
-                                        "y": mouseUpEvent.stageY,
-                                        "text": text.text
-                                    }
+                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                    text.x = mouseMoveEvent.stageX;
+                                    text.y = mouseMoveEvent.stageY;
+                                    stage.update();
                                 });
-                            });
+                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                    text.alpha = 1;
+                                    stage.update();
+                                    // update annotate json
+                                    var obj = {"text": text.text};
+                                    if (mouseUpEvent.stageX !== 0) {
+                                        obj["x"] = mouseUpEvent.stageX;
+                                    }
+                                    if (mouseUpEvent.stageY !== 0) {
+                                        obj["y"] = mouseUpEvent.stageY;
+                                    }
+                                    if (size !== "30") {
+                                        obj["size"] = size;
+                                    }
+                                    updateJson({"annotate": obj});
+                                });
+                            }
                         });
                     },
                     "publishTategakiEvents": function(jqStr, jqSize){
                         stage.removeAllEventListeners();
                         stage.addEventListener("mousedown", function(mouseDownEvent){
-                            var text = new createjs.TextEx(jqStr.val(), jqSize.val() + "px Arial", "#000");
-                            text.x = mouseDownEvent.stageX;
-                            text.y = mouseDownEvent.stageY;
-                            text.alpha = 0.6;
-                            text.direction = "vertical";
-                            text.textAlign = "center";
-                            stage.addChild(text);
-                            stage.update();
-                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
-                                text.x = mouseMoveEvent.stageX;
-                                text.y = mouseMoveEvent.stageY;
+                            if (jqStr.val()) {
+                                var size = jqSize.val();
+                                var text = new createjs.TextEx(jqStr.val(), size + "px Arial", "#000");
+                                text.x = mouseDownEvent.stageX;
+                                text.y = mouseDownEvent.stageY;
+                                text.alpha = 0.6;
+                                text.direction = "vertical";
+                                text.textAlign = "center";
+                                stage.addChild(text);
                                 stage.update();
-                            });
-                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
-                                text.alpha = 1;
-                                stage.update();
-                                // update tategaki json
-                                updateJson({
-                                    "tategaki": {
-                                        "x": mouseUpEvent.stageX,
-                                        "y": mouseUpEvent.stageY,
-                                        "text": text.text
-                                    }
+                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                    text.x = mouseMoveEvent.stageX;
+                                    text.y = mouseMoveEvent.stageY;
+                                    stage.update();
                                 });
-                            });
+                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                    text.alpha = 1;
+                                    stage.update();
+                                    // update tategaki json
+                                    var obj = {"text": text.text};
+                                    if (mouseUpEvent.stageX !== 0) {
+                                        obj["x"] = mouseUpEvent.stageX;
+                                    }
+                                    if (mouseUpEvent.stageY !== 0) {
+                                        obj["y"] = mouseUpEvent.stageY;
+                                    }
+                                    if (size !== "30") {
+                                        obj["size"] = size;
+                                    }
+                                    updateJson({"tategaki": obj});
+                                });
+                            }
                         });
                     },
                     "undo": function(){
@@ -278,6 +310,8 @@
                 $("#komenukaUrlText").val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(url));
             });
 
+            var komenuka = new KomenukaCanvas(new createjs.Stage("canvas"));
+
             $("#imageUrlBtn").click(function(){
                 $rectangleBtn.attr({"disabled": "disabled"});
                 $annotateBtn.attr({"disabled": "disabled"});
@@ -288,9 +322,7 @@
 
                 var url = $("#imageUrlText").val();
                 if (url) {
-                    var stage = new createjs.Stage("canvas"),
-                        img = new Image(),
-                        komenuka = new KomenukaCanvas(stage);
+                    var img = new Image();
                     img.crossOrigin = "Anonymous";
                     img.onload = function(){
                         komenuka.init(new createjs.Bitmap(img));
