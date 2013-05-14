@@ -10,7 +10,7 @@ require 'set'
 use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
-def editImage(command, url, commandHash, image)
+def editImage(commandHash, image)
     begin
         if commandHash.key?('rectangle') then
             args = commandHash['rectangle']
@@ -77,26 +77,26 @@ def editImage(command, url, commandHash, image)
         logger.error e.to_s
         halt 500, 'image edit error'
     end
+end
 
+def saveRecenUrl(command, url)
     begin
-        if command then
-            dc = Dalli::Client.new(
-                ENV['MEMCACHIER_SERVERS'],
-                {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
-            )
-            imageSet = dc.get('set')
-            unless imageSet
-                imageSet = Set.new
-            end
-            if imageSet.length > IMAGE_NUM_MAX
-                tmp = imageSet.to_a.shift
-                tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
-                imageSet = Set.new(tmp)
-            else
-                imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
-            end
-            dc.set('set', imageSet)
+        dc = Dalli::Client.new(
+            ENV['MEMCACHIER_SERVERS'],
+            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+        )
+        imageSet = dc.get('set')
+        unless imageSet
+            imageSet = Set.new
         end
+        if imageSet.length > IMAGE_NUM_MAX
+            tmp = imageSet.to_a.shift
+            tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+            imageSet = Set.new(tmp)
+        else
+            imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+        end
+        dc.set('set', imageSet)
     rescue Exception => e
         logger.warn e.to_s
     end
@@ -135,7 +135,7 @@ get '/proxy' do
         uri = URI.parse(params['url'])
         #if /^.+¥.jpg¥.to$/ =~ uri.host
         #end
-        response = Net::HTTP.start(uri.host, uri.port) {|http|
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
     rescue Exception => e
@@ -143,33 +143,20 @@ get '/proxy' do
         halt 500, 'url error'
     end
 
-    content_type response.content_type
+    content_type res.content_type
     #同ドメインになるのでつけなくてもいいけど
     headers['Access-Control-Allow-Origin'] = '*'
-    response.body
+    res.body
 end
 
 get '/image/v1' do
     command = params['command']
     url = params['url']
-
-    image = nil, response = nil, commandHash = nil
-    if url then
-        begin
-            uri = URI.parse(url)
-            response = Net::HTTP.start(uri.host, uri.port) {|http|
-                http.get(uri.path)
-            }
-            image = Magick::Image.from_blob(response.body).shift
-        rescue Exception => e
-            logger.info url
-            logger.error e.to_s
-            halt 500, 'url error'
-        end
-    else
+    unless url then
         halt 400, 'no url parameter'
     end
 
+    commandHash = nil
     if command then
         begin
             commandHash = JSON.parse(command)
@@ -180,8 +167,7 @@ get '/image/v1' do
     end
 
     begin
-        i = url.index('http')
-        unless i || i != 0 then
+        unless /^http/ =~ url
             url = 'http://' + url
         else
             unless url.index('://') then
@@ -189,20 +175,23 @@ get '/image/v1' do
             end
         end
         uri = URI.parse(url)
-        response = Net::HTTP.start(uri.host, uri.port) {|http|
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        image = Magick::Image.from_blob(response.body).shift
+        image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
         logger.info url
         logger.error e.to_s
         halt 500, 'url error'
     end
 
-    editImage(command, url, commandHash, image)
+    editImage(commandHash, image)
+    if commandHash then
+        saveRecenUrl(command, url)
+    end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type response.content_type
+    content_type res.content_type
     cache_control :public
     image.to_blob
 end
@@ -216,7 +205,7 @@ get '/image/v1/*/*' do |command, url|
     end
 
     begin
-        unless url.index('http') then
+        unless /^http/ =~ url
             url = 'http://' + url
         else
             unless url.index('://') then
@@ -224,20 +213,53 @@ get '/image/v1/*/*' do |command, url|
             end
         end
         uri = URI.parse(url)
-        response = Net::HTTP.start(uri.host, uri.port) {|http|
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        image = Magick::Image.from_blob(response.body).shift
+        image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
         logger.info url
         logger.error e.to_s
         halt 500, 'url error'
     end
 
-    editImage(command, url, commandHash, image)
+    editImage(commandHash, image)
+    saveRecenUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type response.content_type
+    content_type res.content_type
+    cache_control :public
+    image.to_blob
+end
+
+get '/tiqav/v1/*/*' do |command, id|
+    begin
+        commandHash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+
+    begin
+        uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+        tiqavHash = JSON.parse(res.body)
+        uri = URI.parse('http://img.tiqav.com/' + tiqavHash['id'] + '.' + tiqavHash['ext'])
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
+            http.get(uri.path)
+        }
+        image = Magick::Image.from_blob(res.body).shift
+    rescue Exception => e
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    editImage(commandHash, image)
+
+    headers['Access-Control-Allow-Origin'] = '*'
+    content_type res.content_type
     cache_control :public
     image.to_blob
 end

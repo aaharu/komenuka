@@ -72,14 +72,15 @@
         <script src="http://code.createjs.com/easeljs-0.6.0.min.js"></script>
         <script src="/js/TextEx.js?1"></script>
         <script type="text/javascript">
-        $(function(){
+        $(function() {
             "use strict";
-            var KomenukaCanvas = function KomenukaCanvas(stage){
+            var KomenukaCanvas = function KomenukaCanvas(stage) {
                 var shape, overlay, jsonObj;
-                var jsonObjHistory = new Array();
+                var jsonObjHistory = [];
                 var $out = $("#outjson"), $outUrl = $("#komenukaUrlText"), $color = $("#colorPicker");
 
-                function updateJson(obj){
+                function updateJson(obj) {
+                    var url = $("#imageUrlText").val();
                     //Objectの結合
                     for (var k in obj) {
                         if (jsonObj[k] === undefined) {
@@ -94,20 +95,18 @@
                     jsonObjHistory[jsonObjHistory.length] = $.extend(true, {}, jsonObj);
                     //HTMLの更新
                     $out.val(JSON.stringify(jsonObj));
-                    var url = $("#imageUrlText").val();
-                    var regexp = new RegExp("^http://", "i");
-                    if (regexp.test(url)) {
+                    if ((new RegExp("^http://", "i")).test(url)) {
                         url = url.substring(7);
                     }
                     $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(url));
                 }
 
-                function drawFromJson(json){
+                function drawFromJson(json) {
                     for (var command in json) {
                         if (json[command].length) {
                             var args = json[command];
                         } else {
-                            var args = new Array(json[command]);
+                            var args = [json[command]];
                         }
                         switch (command) {
                             case "rectangle":
@@ -154,7 +153,7 @@
                 }
 
                 return {
-                    "init": function(bmp){
+                    "init": function(bmp) {
                         stage.removeAllEventListeners();
                         stage.canvas.width = bmp.image.width;
                         stage.canvas.height = bmp.image.height;
@@ -168,15 +167,15 @@
                         jsonObj = {};
                         return this;
                     },
-                    "publishRectangleEvents": function(){
+                    "publishRectangleEvents": function() {
                         stage.removeAllEventListeners();
-                        stage.addEventListener("mousedown", function(mouseDownEvent){
+                        stage.addEventListener("mousedown", function(mouseDownEvent) {
                             var startX = mouseDownEvent.stageX, startY = mouseDownEvent.stageY;
-                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                            mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
                                 overlay.graphics.c().f("#" + $color.val()).r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
                                 stage.update();
                             });
-                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                            mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
                                 overlay.graphics.c();
                                 shape.graphics.f("#" + $color.val()).r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
                                 stage.update();
@@ -211,9 +210,9 @@
                             });
                         });
                     },
-                    "publishAnnotateEvents": function(jqStr, jqSize){
+                    "publishAnnotateEvents": function(jqStr, jqSize) {
                         stage.removeAllEventListeners();
-                        stage.addEventListener("mousedown", function(mouseDownEvent){
+                        stage.addEventListener("mousedown", function(mouseDownEvent) {
                             if (jqStr.val()) {
                                 var size = jqSize.val();
                                 var text = new createjs.Text(jqStr.val(), size + "px Arial", "#000");
@@ -222,12 +221,12 @@
                                 text.alpha = 0.6;
                                 stage.addChild(text);
                                 stage.update();
-                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
                                     text.x = mouseMoveEvent.stageX;
                                     text.y = mouseMoveEvent.stageY;
                                     stage.update();
                                 });
-                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
                                     text.alpha = 1;
                                     stage.update();
                                     // update annotate json
@@ -246,9 +245,9 @@
                             }
                         });
                     },
-                    "publishTategakiEvents": function(jqStr, jqSize){
+                    "publishTategakiEvents": function(jqStr, jqSize) {
                         stage.removeAllEventListeners();
-                        stage.addEventListener("mousedown", function(mouseDownEvent){
+                        stage.addEventListener("mousedown", function(mouseDownEvent) {
                             if (jqStr.val()) {
                                 var size = jqSize.val();
                                 var text = new createjs.TextEx(jqStr.val(), size + "px Arial", "#000");
@@ -259,12 +258,12 @@
                                 text.textAlign = "center";
                                 stage.addChild(text);
                                 stage.update();
-                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent){
+                                mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
                                     text.x = mouseMoveEvent.stageX;
                                     text.y = mouseMoveEvent.stageY;
                                     stage.update();
                                 });
-                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent){
+                                mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
                                     text.alpha = 1;
                                     stage.update();
                                     // update tategaki json
@@ -283,7 +282,7 @@
                             }
                         });
                     },
-                    "undo": function(){
+                    "undo": function() {
                         if (jsonObjHistory.length > 0) {
                             jsonObjHistory.pop();
                             drawFromJson(jsonObjHistory[jsonObjHistory.length - 1]);
@@ -301,18 +300,21 @@
                 $drawText = $("#drawText"),
                 $textSize = $("#textSize");
 
-            $outjson.change(function(){
+            $outjson.change(function() {
                 var url = $("#imageUrlText").val();
-                var regexp = new RegExp("^http://", "i");
-                if (regexp.test(url)) {
-                    url = url.substring(7);
-                }
-                $("#komenukaUrlText").val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(url));
+                //if ((new RegExp("^http://([^/]+¥.)?tiqav¥.com.*$", "i")).test(url)) {
+                //    $("#komenukaUrlText").val("http://komenuka.herokuapp.com/tiqav/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + ;
+                //} else {
+                    if ((new RegExp("^http://", "i")).test(url)) {
+                        url = url.substring(7);
+                    }
+                    $("#komenukaUrlText").val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(url));
+                //}
             });
 
             var komenuka = new KomenukaCanvas(new createjs.Stage("canvas"));
 
-            $("#imageUrlBtn").click(function(){
+            $("#imageUrlBtn").click(function() {
                 $rectangleBtn.attr({"disabled": "disabled"});
                 $annotateBtn.attr({"disabled": "disabled"});
                 $tategakiBtn.attr({"disabled": "disabled"});
@@ -324,7 +326,7 @@
                 if (url) {
                     var img = new Image();
                     img.crossOrigin = "Anonymous";
-                    img.onload = function(){
+                    img.onload = function() {
                         komenuka.init(new createjs.Bitmap(img));
                         $outjson.val("");
                         $rectangleBtn.removeAttr("disabled");
@@ -334,28 +336,28 @@
                     }
                     img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
 
-                    $rectangleBtn.click(function(){
+                    $rectangleBtn.click(function() {
                         $colorPicker.val("FFFFFF");
                         $colorPicker.css({"background-color": "#fff", "color": "#000"});
                         $drawText.attr({"disabled": "disabled"});
                         $textSize.attr({"disabled": "disabled"});
                         komenuka.publishRectangleEvents();
                     });
-                    $annotateBtn.click(function(){
+                    $annotateBtn.click(function() {
                         $colorPicker.val("000000");
                         $colorPicker.css({"background-color": "#000", "color": "#fff"});
                         $drawText.removeAttr("disabled");
                         $textSize.removeAttr("disabled");
                         komenuka.publishAnnotateEvents($drawText, $textSize);
                     });
-                    $tategakiBtn.click(function(){
+                    $tategakiBtn.click(function() {
                         $colorPicker.val("000000");
                         $colorPicker.css({"background-color": "#000", "color": "#fff"});
                         $drawText.removeAttr("disabled");
                         $textSize.removeAttr("disabled");
                         komenuka.publishTategakiEvents($drawText, $textSize);
                     });
-                    $undoBtn.click(function(){
+                    $undoBtn.click(function() {
                         komenuka.init(new createjs.Bitmap(img));
                         komenuka.undo();
                     });
@@ -365,7 +367,7 @@
                 return false;
             });
 
-            $("#chkBtn").click(function(){
+            $("#chkBtn").click(function() {
                 document.getElementById("komenukaImg").src = $("#komenukaUrlText").val();
                 return false;
             });
