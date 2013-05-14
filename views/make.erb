@@ -75,7 +75,7 @@
         $(function() {
             "use strict";
             var KomenukaCanvas = function KomenukaCanvas(stage) {
-                var shape, overlay, jsonObj;
+                var shape, overlay, jsonObj, image;
                 var jsonObjHistory = [];
                 var $out = $("#outjson"), $outUrl = $("#komenukaUrlText"), $color = $("#colorPicker");
 
@@ -157,16 +157,22 @@
                     }
                 }
 
+                function clear() {
+                    stage.removeAllChildren();
+                    stage.addChild(image);
+                    shape = new createjs.Shape();
+                    stage.addChild(shape);
+                }
+
                 return {
                     "init": function(bmp) {
+                        image = bmp;
                         stage.removeAllEventListeners();
                         stage.canvas.width = bmp.image.width;
                         stage.canvas.height = bmp.image.height;
-                        shape = new createjs.Shape();
+                        clear();
                         overlay = new createjs.Shape();
                         overlay.alpha = 0.7;
-                        stage.addChild(bmp);
-                        stage.addChild(shape);
                         stage.addChild(overlay);
                         stage.update();
                         jsonObj = {};
@@ -289,6 +295,9 @@
                     },
                     "undo": function() {
                         if (jsonObjHistory.length > 0) {
+                            clear();
+                            stage.addChild(overlay);
+                            stage.update();
                             jsonObjHistory.pop();
                             drawFromJson(jsonObjHistory[jsonObjHistory.length - 1]);
                         }
@@ -364,7 +373,6 @@
                         komenuka.publishTategakiEvents($drawText, $textSize);
                     });
                     $undoBtn.click(function() {
-                        komenuka.init(new createjs.Bitmap(img));
                         komenuka.undo();
                     });
                 } else {
