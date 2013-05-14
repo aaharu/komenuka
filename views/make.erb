@@ -95,10 +95,15 @@
                     jsonObjHistory[jsonObjHistory.length] = $.extend(true, {}, jsonObj);
                     //HTMLの更新
                     $out.val(JSON.stringify(jsonObj));
-                    if ((new RegExp("^http://", "i")).test(url)) {
+                    if ((/^http:\/\//i).test(url)) {
                         url = url.substring(7);
+                        var ptn = url.match(/^(img\.)?tiqav\.com\/(.+\.(jpg|gif|png))$/i);
                     }
-                    $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(url));
+                    if (ptn === null) {
+                        $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(url));
+                    } else {
+                        $outUrl.val("http://komenuka.herokuapp.com/tiqav/v1/" + encodeURIComponent(JSON.stringify(jsonObj)) + "/" + encodeURIComponent(ptn[2]));
+                    }
                 }
 
                 function drawFromJson(json) {
@@ -302,14 +307,15 @@
 
             $outjson.change(function() {
                 var url = $("#imageUrlText").val();
-                //if ((new RegExp("^http://([^/]+¥.)?tiqav¥.com.*$", "i")).test(url)) {
-                //    $("#komenukaUrlText").val("http://komenuka.herokuapp.com/tiqav/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + ;
-                //} else {
-                    if ((new RegExp("^http://", "i")).test(url)) {
-                        url = url.substring(7);
-                    }
+                if ((/^http:\/\//i).test(url)) {
+                    url = url.substring(7);
+                    var ptn = url.match(/^(img\.)?tiqav\.com\/(.+\.(jpg|gif|png))$/i);
+                }
+                if (ptn === null) {
                     $("#komenukaUrlText").val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(url));
-                //}
+                } else {
+                    $("#komenukaUrlText").val("http://komenuka.herokuapp.com/tiqav/v1/" + encodeURIComponent(JSON.stringify($("#outjson").val())) + "/" + encodeURIComponent(ptn[2]));
+                }
             });
 
             var komenuka = new KomenukaCanvas(new createjs.Stage("canvas"));

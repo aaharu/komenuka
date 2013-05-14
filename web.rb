@@ -79,7 +79,7 @@ def editImage(commandHash, image)
     end
 end
 
-def saveRecenUrl(command, url)
+def saveRecentUrl(command, url)
     begin
         dc = Dalli::Client.new(
             ENV['MEMCACHIER_SERVERS'],
@@ -187,7 +187,7 @@ get '/image/v1' do
 
     editImage(commandHash, image)
     if commandHash then
-        saveRecenUrl(command, url)
+        saveRecentUrl(command, url)
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
@@ -224,7 +224,7 @@ get '/image/v1/*/*' do |command, url|
     end
 
     editImage(commandHash, image)
-    saveRecenUrl(command, url)
+    saveRecentUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
@@ -241,12 +241,16 @@ get '/tiqav/v1/*/*' do |command, id|
     end
 
     begin
-        uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
-        res = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-        tiqavHash = JSON.parse(res.body)
-        uri = URI.parse('http://img.tiqav.com/' + tiqavHash['id'] + '.' + tiqavHash['ext'])
+        unless id.index('.') then
+            uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
+            tiqavHash = JSON.parse(res.body)
+            uri = URI.parse('http://img.tiqav.com/' + tiqavHash['id'] + '.' + tiqavHash['ext'])
+        else
+            uri = URI.parse("http://img.tiqav.com/#{id}")
+        end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
@@ -257,6 +261,7 @@ get '/tiqav/v1/*/*' do |command, id|
     end
 
     editImage(commandHash, image)
+    saveRecentUrl(command, uri.to_s)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
