@@ -91,10 +91,10 @@ def saveRecentUrl(command, url)
         end
         if imageSet.length > IMAGE_NUM_MAX
             tmp = imageSet.to_a.shift
-            tmp.push("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+            tmp.push("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
             imageSet = Set.new(tmp)
         else
-            imageSet.add("/image/v1/#{URI.encode(command)}/#{URI.encode(url)}")
+            imageSet.add("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
         end
         dc.set('set', imageSet)
     rescue Exception => e

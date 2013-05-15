@@ -35,7 +35,8 @@
                     <button id="annotateBtn" class="btn" disabled="disabled"><i class="icon-text-width"></i>横書き</button>
                     <button id="tategakiBtn" class="btn" disabled="disabled"><i class="icon-text-height"></i>縦書き</button>
                     <hr />
-                    <input id="colorPicker" class="color input-mini" />
+                    <input id="colorPicker" class="color input-mini" /><br />
+                    <button id="spuitBtn" class="btn">スポイト</button>
                     <hr />
                     <div class="input-append">
                         <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
@@ -293,6 +294,19 @@
                             }
                         });
                     },
+                    "publishSpuitEvents": function() {
+                        stage.removeAllEventListeners();
+                        stage.addEventListener("mousedown", function(e) {
+                            var imgData = stage.canvas.getContext("2d").getImageData(e.stageX, e.stageY, 1, 1).data;
+                            var fontColor = "#000";
+                            var pointColor = (imgData[0].toString(16) + imgData[1].toString(16) + imgData[2].toString(16)).toUpperCase();
+                            if (imgData[0] < 128 || imgData[1] < 128 || imgData[2] < 128) {
+                                fontColor = "#fff";
+                            }
+                            $color.val(pointColor);
+                            $color.css({"background-color": "#" + pointColor, "color": fontColor});
+                        });
+                    },
                     "undo": function() {
                         if (jsonObjHistory.length > 0) {
                             clear();
@@ -374,6 +388,9 @@
                     });
                     $undoBtn.click(function() {
                         komenuka.undo();
+                    });
+                    $("#spuitBtn").click(function() {
+                        komenuka.publishSpuitEvents();
                     });
                 } else {
                     alert("please input");
