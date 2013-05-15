@@ -30,14 +30,13 @@
                 <div class="span2">
                     <button id="undoBtn" class="btn" disabled="disabled">元に戻す</button>
                     <hr />
-                    <button id="rectangleBtn" class="btn" disabled="disabled"><i class="icon-edit"></i>四角</button>
-                    <hr />
-                    <button id="annotateBtn" class="btn" disabled="disabled"><i class="icon-text-width"></i>横書き</button>
-                    <button id="tategakiBtn" class="btn" disabled="disabled"><i class="icon-text-height"></i>縦書き</button>
-                    <hr />
-                    <input id="colorPicker" class="color input-mini" /><br />
+                    <button id="rectangleBtn" class="btn" disabled="disabled"><i class="icon-edit"></i>四角</button><br />
+                    <input id="colorPicker" class="color input-mini" />
                     <button id="spuitBtn" class="btn">スポイト</button>
                     <hr />
+                    <button id="annotateBtn" class="btn" disabled="disabled"><i class="icon-text-width"></i>横書き</button>
+                    <button id="tategakiBtn" class="btn" disabled="disabled"><i class="icon-text-height"></i>縦書き</button><br />
+                    <input class="input-mini" value="000000" /><br />
                     <div class="input-append">
                         <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
                         <span class="add-on">px</span>
@@ -366,22 +365,16 @@
                     img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
 
                     $rectangleBtn.click(function() {
-                        $colorPicker.val("FFFFFF");
-                        $colorPicker.css({"background-color": "#fff", "color": "#000"});
                         $drawText.attr({"disabled": "disabled"});
                         $textSize.attr({"disabled": "disabled"});
                         komenuka.publishRectangleEvents();
                     });
                     $annotateBtn.click(function() {
-                        $colorPicker.val("000000");
-                        $colorPicker.css({"background-color": "#000", "color": "#fff"});
                         $drawText.removeAttr("disabled");
                         $textSize.removeAttr("disabled");
                         komenuka.publishAnnotateEvents($drawText, $textSize);
                     });
                     $tategakiBtn.click(function() {
-                        $colorPicker.val("000000");
-                        $colorPicker.css({"background-color": "#000", "color": "#fff"});
                         $drawText.removeAttr("disabled");
                         $textSize.removeAttr("disabled");
                         komenuka.publishTategakiEvents($drawText, $textSize);
