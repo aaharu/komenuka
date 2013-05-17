@@ -6,8 +6,10 @@ require 'net/http'
 require 'json'
 require 'dalli'
 require 'set'
+require 'rack/contrib'
 
-use Rack::Static, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
+use Rack::Deflater
+use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
 def editImage(commandHash, image)
@@ -115,14 +117,18 @@ get '/' do
     unless imageSet
         imageSet = Set.new
     end
+
+    expires 259200, :public, :must_revalidate
     erb :index, :locals => {:images => imageSet}
 end
 
 get '/readme' do
+    expires 259200, :public, :must_revalidate
     erb :readme
 end
 
 get '/make' do
+    expires 259200, :public, :must_revalidate
     erb :make
 end
 
@@ -192,7 +198,7 @@ get '/image/v1' do
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
-    cache_control :public
+    expires 259200, :public
     image.to_blob
 end
 
@@ -228,7 +234,7 @@ get '/image/v1/*/*' do |command, url|
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
-    cache_control :public
+    expires 259200, :public
     image.to_blob
 end
 
@@ -265,7 +271,7 @@ get '/tiqav/v1/*/*' do |command, id|
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
-    cache_control :public
+    expires 259200, :public
     image.to_blob
 end
 
