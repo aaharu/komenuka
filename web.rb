@@ -118,7 +118,7 @@ get '/' do
         imageSet = Set.new
     end
 
-    expires 259200, :public, :must_revalidate
+    expires 60, :public, :must_revalidate
     erb :index, :locals => {:images => imageSet}
 end
 
@@ -128,7 +128,7 @@ get '/readme' do
 end
 
 get '/make' do
-    expires 259200, :public, :must_revalidate
+    expires 86400, :public, :must_revalidate
     erb :make
 end
 
