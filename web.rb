@@ -123,12 +123,12 @@ get '/' do
 end
 
 get '/readme' do
-    expires 259200, :public, :must_revalidate
+    expires 100, :public, :must_revalidate
     erb :readme
 end
 
 get '/make' do
-    expires 86400, :public, :must_revalidate
+    expires 100, :public, :must_revalidate
     erb :make
 end
 

@@ -127,18 +127,18 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                     stage.update();
                     // update rectangle json
                     if (startX < mouseUpEvent.stageX) {
-                        x1 = +startX;
-                        x2 = +mouseUpEvent.stageX;
+                        x1 = startX|0;
+                        x2 = mouseUpEvent.stageX|0;
                     } else {
-                        x1 = +mouseUpEvent.stageX;
-                        x2 = +startX;
+                        x1 = mouseUpEvent.stageX|0;
+                        x2 = startX|0;
                     }
                     if (startY < mouseUpEvent.stageY) {
-                        y1 = +startY;
-                        y2 = +mouseUpEvent.stageY;
+                        y1 = startY|0;
+                        y2 = mouseUpEvent.stageY|0;
                     } else {
-                        y1 = +mouseUpEvent.stageY;
-                        y2 = +startY;
+                        y1 = mouseUpEvent.stageY|0;
+                        y2 = startY|0;
                     }
                     if (x1 !== 0) {
                         obj.x1 = x1;
@@ -182,10 +182,10 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                         stage.update();
                         // update annotate json
                         if (mouseUpEvent.stageX >= 1) {
-                            obj.x = +mouseUpEvent.stageX;
+                            obj.x = mouseUpEvent.stageX|0;
                         }
                         if (mouseUpEvent.stageY >= 1) {
-                            obj.y = +mouseUpEvent.stageY;
+                            obj.y = mouseUpEvent.stageY|0;
                         }
                         if (size !== "30") {
                             obj.size = size;
@@ -223,10 +223,10 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                         stage.update();
                         // update tategaki json
                         if (mouseUpEvent.stageX >= 1) {
-                            obj.x = +mouseUpEvent.stageX;
+                            obj.x = mouseUpEvent.stageX|0;
                         }
                         if (mouseUpEvent.stageY >= 1) {
-                            obj.y = +mouseUpEvent.stageY;
+                            obj.y = mouseUpEvent.stageY|0;
                         }
                         if (size !== "30") {
                             obj.size = size;
