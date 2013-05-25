@@ -22,8 +22,14 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
     }
 
     function updateHtml(obj) {
-        var url = $imageUrlText.val(), ptn;
+        var url, ptn;
+        if (obj === undefined || Object.keys(obj).length === 0) {
+            $out.val("");
+            $outUrl.val("");
+            return;
+        }
         $out.val(JSON.stringify(obj));
+        url = $imageUrlText.val();
         if ((/^http:\/\//i).test(url)) {
             url = url.substring(7);
             ptn = url.match(/^(img\.)?tiqav\.com\/([\w\d]+\.(jpg|gif|png))$/i);
@@ -261,8 +267,9 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                 stage.addChild(overlay);
                 stage.update();
                 jsonObjHistory.pop();
-                drawFromJson(jsonObjHistory[jsonObjHistory.length - 1]);
-                updateHtml(jsonObjHistory[jsonObjHistory.length - 1]);
+                jsonObj = jsonObjHistory[jsonObjHistory.length - 1] || {};
+                drawFromJson(jsonObj);
+                updateHtml(jsonObj);
             }
         }
     };
