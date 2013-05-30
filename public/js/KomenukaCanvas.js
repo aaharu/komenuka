@@ -1,6 +1,6 @@
-var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1, $colorPicker2, $imageUrlText) {
+var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker2, $imageUrlText) {
     "use strict";
-    var shape, overlay, jsonObj, image, jsonObjHistory = [];
+    var shape, overlay, jsonObj, image, jsonObjHistory;
 
     function updateJson(obj) {
         var k;
@@ -116,35 +116,37 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
             stage.addChild(overlay);
             stage.update();
             jsonObj = {};
+            jsonObjHistory = [];
             return this;
         },
         "publishRectangleEvents" : function() {
             stage.removeAllEventListeners();
             stage.addEventListener("mousedown", function(mouseDownEvent) {
-                var startX = mouseDownEvent.stageX, startY = mouseDownEvent.stageY;
+                var startX = mouseDownEvent.stageX|0, startY = mouseDownEvent.stageY|0;
                 mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
-                    overlay.graphics.c().f("#" + $colorPicker1.val()).r(startX, startY, mouseMoveEvent.stageX - startX, mouseMoveEvent.stageY - startY).ef();
+                    var moveX = mouseMoveEvent.stageX|0, moveY = mouseMoveEvent.stageY|0;
+                    overlay.graphics.c().f("#" + $colorPicker1.val()).r(startX, startY, moveX - startX, moveY - startY).ef();
                     stage.update();
                 });
                 mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
-                    var x1, x2, y1, y2, obj = {}, color = "#" + $colorPicker1.val();
+                    var x1, x2, y1, y2, obj = {}, color = "#" + $colorPicker1.val(), upX = mouseUpEvent.stageX|0, upY = mouseUpEvent.stageY|0;
                     overlay.graphics.c();
-                    shape.graphics.f(color).r(startX, startY, mouseUpEvent.stageX - startX, mouseUpEvent.stageY - startY).ef();
+                    shape.graphics.f(color).r(startX, startY, upX - startX, upY - startY).ef();
                     stage.update();
                     // update rectangle json
-                    if (startX < mouseUpEvent.stageX) {
-                        x1 = startX|0;
-                        x2 = mouseUpEvent.stageX|0;
+                    if (startX < upX) {
+                        x1 = startX;
+                        x2 = upX;
                     } else {
-                        x1 = mouseUpEvent.stageX|0;
-                        x2 = startX|0;
+                        x1 = upX;
+                        x2 = startX;
                     }
-                    if (startY < mouseUpEvent.stageY) {
-                        y1 = startY|0;
-                        y2 = mouseUpEvent.stageY|0;
+                    if (startY < upY) {
+                        y1 = startY;
+                        y2 = upY;
                     } else {
-                        y1 = mouseUpEvent.stageY|0;
-                        y2 = startY|0;
+                        y1 = upY;
+                        y2 = startY;
                     }
                     if (x1 !== 0) {
                         obj.x1 = x1;
@@ -172,26 +174,28 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                     var size = jqSize.val(),
                         color = "#" + $colorPicker2.val(),
                         text = new createjs.Text(jqStr.val(), size + "px Arial", color);
-                    text.x = mouseDownEvent.stageX;
-                    text.y = mouseDownEvent.stageY;
+                    text.x = mouseDownEvent.stageX|0;
+                    text.y = mouseDownEvent.stageY|0;
                     text.alpha = 0.6;
                     stage.addChild(text);
                     stage.update();
                     mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
-                        text.x = mouseMoveEvent.stageX;
-                        text.y = mouseMoveEvent.stageY;
+                        text.x = mouseMoveEvent.stageX|0;
+                        text.y = mouseMoveEvent.stageY|0;
                         stage.update();
                     });
                     mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
-                        var obj = {"text" : text.text};
+                        var obj = {"text" : text.text}, upX = mouseUpEvent.stageX|0, upY = mouseUpEvent.stageY|0;
+                        text.x = upX;
+                        text.y = upY;
                         text.alpha = 1;
                         stage.update();
                         // update annotate json
-                        if (mouseUpEvent.stageX >= 1) {
-                            obj.x = mouseUpEvent.stageX|0;
+                        if (upX >= 1) {
+                            obj.x = upX;
                         }
-                        if (mouseUpEvent.stageY >= 1) {
-                            obj.y = mouseUpEvent.stageY|0;
+                        if (upY >= 1) {
+                            obj.y = upY;
                         }
                         if (size !== "30") {
                             obj.size = size;
@@ -211,28 +215,30 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
                     var size = jqSize.val(),
                         color = "#" + $colorPicker2.val(),
                         text = new createjs.TextEx(jqStr.val(), size + "px Arial", color);
-                    text.x = mouseDownEvent.stageX;
-                    text.y = mouseDownEvent.stageY;
+                    text.x = mouseDownEvent.stageX|0;
+                    text.y = mouseDownEvent.stageY|0;
                     text.alpha = 0.6;
                     text.direction = "vertical";
                     text.textAlign = "center";
                     stage.addChild(text);
                     stage.update();
                     mouseDownEvent.addEventListener("mousemove", function(mouseMoveEvent) {
-                        text.x = mouseMoveEvent.stageX;
-                        text.y = mouseMoveEvent.stageY;
+                        text.x = mouseMoveEvent.stageX|0;
+                        text.y = mouseMoveEvent.stageY|0;
                         stage.update();
                     });
                     mouseDownEvent.addEventListener("mouseup", function(mouseUpEvent) {
-                        var obj = {"text" : text.text};
+                        var obj = {"text" : text.text}, upX = mouseUpEvent.stageX|0, upY = mouseUpEvent.stageY|0;
+                        text.x = upX;
+                        text.y = upY;
                         text.alpha = 1;
                         stage.update();
                         // update tategaki json
-                        if (mouseUpEvent.stageX >= 1) {
-                            obj.x = mouseUpEvent.stageX|0;
+                        if (upX >= 1) {
+                            obj.x = upX;
                         }
-                        if (mouseUpEvent.stageY >= 1) {
-                            obj.y = mouseUpEvent.stageY|0;
+                        if (upY >= 1) {
+                            obj.y = upY;
                         }
                         if (size !== "30") {
                             obj.size = size;
@@ -248,7 +254,7 @@ var KomenukaCanvas = function KomenukaCanvas(stage, $out, $outUrl, $colorPicker1
         "publishSpuitEvents" : function() {
             stage.removeAllEventListeners();
             stage.addEventListener("mousedown", function(e) {
-                var imgData = stage.canvas.getContext("2d").getImageData(e.stageX, e.stageY, 1, 1).data,
+                var imgData = stage.canvas.getContext("2d").getImageData(e.stageX|0, e.stageY|0, 1, 1).data,
                     fontColor = "#000",
                     pointColor = (imgData[0].toString(16) + imgData[1].toString(16) + imgData[2].toString(16)).toUpperCase();
                 if (imgData[0] < 128 || imgData[1] < 128 || imgData[2] < 128) {
