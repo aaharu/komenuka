@@ -1,7 +1,10 @@
 README.md
-LICENSE.gitignor
+LICENSE.gitignore
 fonts/LICENSE
 fonts/LICENSE.en
 fonts/LICENSE_J.mplus
 fonts/LICENSE_E.mplus
 fonts/README.sazanami
+
+KomenukaCanvas.js
+TextEx.js
