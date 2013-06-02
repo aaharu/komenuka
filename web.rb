@@ -12,6 +12,21 @@ use Rack::Deflater
 use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
 IMAGE_NUM_MAX = 15
 
+def selectFont(fontFamily)
+    case fontFamily
+    when 'ipag'
+        return fontFamily
+    when 'ipagp'
+        return fontFamily
+    when 'ipam'
+        return fontFamily
+    when 'ipamp'
+        return fontFamily
+    else
+        return 'ipag'
+    end
+end
+
 def editImage(commandHash, image)
     begin
         if commandHash.key?('rectangle') then
@@ -33,17 +48,22 @@ def editImage(commandHash, image)
                 args = [args]
             end
             for arg in args do
-                lines = arg['text'].split
-                j = 1
-                for line in lines do
+                if arg.key?('text') then
+                    x = arg.fetch('x', 0).to_i
+                    y = arg.fetch('y', 0).to_i
                     fontSize = arg.fetch('size', 30).to_i
-                    draw = Magick::Draw.new
-                    draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i, arg.fetch('y', 0).to_i + fontSize * j, line) do
-                        self.font = 'fonts/ipaexg.ttf'
-                        self.fill = arg.fetch('color', '#000000')
-                        self.pointsize = fontSize
+                    fontFamily = selectFont(arg.fetch('font', 'ipag'))
+                    lines = arg['text'].split
+                    j = 1
+                    for line in lines do
+                        draw = Magick::Draw.new
+                        draw.annotate(image, image.columns, image.rows, x, y + fontSize * j, line) do
+                            self.font = "fonts/#{fontFamily}.ttf"
+                            self.fill = arg.fetch('color', '#000000')
+                            self.pointsize = fontSize
+                        end
+                        j += 1
                     end
-                    j += 1
                 end
             end
         end
@@ -55,15 +75,18 @@ def editImage(commandHash, image)
             end
             for arg in args do
                 if arg.key?('text') then
+                    x = arg.fetch('x', 0).to_i
+                    y = arg.fetch('y', 0).to_i
+                    fontSize = arg.fetch('size', 30).to_i
+                    fontFamily = selectFont(arg.fetch('font', 'ipag'))
                     lines = arg['text'].split
                     j = 0
                     for line in lines do
-                        fontSize = arg.fetch('size', 30).to_i
                         draw = Magick::Draw.new
                         i = 0
                         while i < line.size
-                            draw.annotate(image, image.columns, image.rows, arg.fetch('x', 0).to_i - fontSize * j, arg.fetch('y', 0).to_i + fontSize * (i + 1), line[i]) do
-                                self.font = 'fonts/ipaexg.ttf'
+                            draw.annotate(image, image.columns, image.rows, x - fontSize * j, y + fontSize * (i + 1), line[i]) do
+                                self.font = "fonts/#{fontFamily}.ttf"
                                 self.align = Magick::CenterAlign
                                 self.fill = arg.fetch('color', '#000000')
                                 self.pointsize = fontSize
