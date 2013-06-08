@@ -27,10 +27,10 @@ def selectFont(fontFamily)
     end
 end
 
-def editImage(commandHash, image)
+def editImage(command_hash, image)
     begin
-        if commandHash.key?('rectangle') then
-            args = commandHash['rectangle']
+        if command_hash.key?('rectangle') then
+            args = command_hash['rectangle']
             if args.instance_of?(Hash) then
                 args = [args]
             end
@@ -42,8 +42,8 @@ def editImage(commandHash, image)
             end
         end
 
-        if commandHash.key?('annotate') then
-            args = commandHash['annotate']
+        if command_hash.key?('annotate') then
+            args = command_hash['annotate']
             if args.instance_of?(Hash) then
                 args = [args]
             end
@@ -68,8 +68,8 @@ def editImage(commandHash, image)
             end
         end
 
-        if commandHash.key?('tategaki') then
-            args = commandHash['tategaki']
+        if command_hash.key?('tategaki') then
+            args = command_hash['tategaki']
             if args.instance_of?(Hash) then
                 args = [args]
             end
@@ -110,18 +110,18 @@ def saveRecentUrl(command, url)
             ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
-        imageSet = dc.get('set')
-        unless imageSet
-            imageSet = Set.new
+        image_set = dc.get('set')
+        unless image_set
+            image_set = Set.new
         end
-        if imageSet.length > IMAGE_NUM_MAX
-            tmp = imageSet.to_a.shift
+        if image_set.length > IMAGE_NUM_MAX
+            tmp = image_set.to_a.shift
             tmp.push("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-            imageSet = Set.new(tmp)
+            image_set = Set.new(tmp)
         else
-            imageSet.add("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
+            image_set.add("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
         end
-        dc.set('set', imageSet)
+        dc.set('set', image_set)
     rescue Exception => e
         logger.warn e.to_s
     end
@@ -133,16 +133,16 @@ get '/' do
             ENV['MEMCACHIER_SERVERS'],
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
-        imageSet = dc.get('set')
+        image_set = dc.get('set')
     rescue Exception => e
         logger.warn e.to_s
     end
-    unless imageSet
-        imageSet = Set.new
+    unless image_set
+        image_set = Set.new
     end
 
     expires 60, :public, :must_revalidate
-    erb :index, :locals => {:images => imageSet}
+    erb :index, :locals => {:images => image_set}
 end
 
 get '/readme' do
@@ -161,9 +161,18 @@ get '/proxy' do
     end
 
     begin
-        uri = URI.parse(params['url'])
-        #if /^.+¥.jpg¥.to$/ =~ uri.host
-        #end
+        if /^https?:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
+            uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
+            tiqav_hash = JSON.parse(res.body)
+            uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
+        else
+            uri = URI.parse(params['url'])
+            #if /^.+¥.jpg¥.to$/ =~ uri.host
+            #end
+        end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
@@ -185,10 +194,10 @@ get '/image/v1' do
         halt 400, 'no url parameter'
     end
 
-    commandHash = nil
+    command_hash = nil
     if command then
         begin
-            commandHash = JSON.parse(command)
+            command_hash = JSON.parse(command)
         rescue Exception => e
             logger.error e.to_s
             halt 400, 'command error'
@@ -214,8 +223,8 @@ get '/image/v1' do
         halt 500, 'url error'
     end
 
-    editImage(commandHash, image)
-    if commandHash then
+    editImage(command_hash, image)
+    if command_hash then
         saveRecentUrl(command, url)
     end
 
@@ -227,7 +236,7 @@ end
 
 get '/image/v1/*/*' do |command, url|
     begin
-        commandHash = JSON.parse(command)
+        command_hash = JSON.parse(command)
     rescue Exception => e
         logger.error e.to_s
         halt 400, 'command error'
@@ -252,7 +261,7 @@ get '/image/v1/*/*' do |command, url|
         halt 500, 'url error'
     end
 
-    editImage(commandHash, image)
+    editImage(command_hash, image)
     saveRecentUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
@@ -263,7 +272,7 @@ end
 
 get '/tiqav/v1/*/*' do |command, id|
     begin
-        commandHash = JSON.parse(command)
+        command_hash = JSON.parse(command)
     rescue Exception => e
         logger.error e.to_s
         halt 400, 'command error'
@@ -275,8 +284,8 @@ get '/tiqav/v1/*/*' do |command, id|
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
             }
-            tiqavHash = JSON.parse(res.body)
-            uri = URI.parse('http://img.tiqav.com/' + tiqavHash['id'] + '.' + tiqavHash['ext'])
+            tiqav_hash = JSON.parse(res.body)
+            uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
             uri = URI.parse("http://img.tiqav.com/#{id}")
         end
@@ -289,7 +298,7 @@ get '/tiqav/v1/*/*' do |command, id|
         halt 500, 'url error'
     end
 
-    editImage(commandHash, image)
+    editImage(command_hash, image)
     saveRecentUrl(command, uri.to_s)
 
     headers['Access-Control-Allow-Origin'] = '*'

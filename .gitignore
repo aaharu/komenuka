@@ -1,9 +1,11 @@
+# osx
 .DS_Store
 .AppleDouble
 .LSOverride
 Icon
 
 
+# windows
 # Thumbnails
 ._*
 
@@ -20,3 +22,26 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+
+
+# emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+
+# vim
+.*.s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
