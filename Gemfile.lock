@@ -2,6 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     dalli (2.6.2)
+    punycode4r (0.2.0)
     rack (1.5.2)
     rack-contrib (1.1.0)
       rack (>= 0.9.1)
@@ -19,6 +20,7 @@ PLATFORMS
 
 DEPENDENCIES
   dalli (~> 2.6)
+  punycode4r (~> 0.2.0)
   rack-contrib
   rmagick (~> 2.13)
   sinatra (~> 1.4)

@@ -7,6 +7,7 @@ require 'json'
 require 'dalli'
 require 'set'
 require 'rack/contrib'
+require 'punycode'
 
 use Rack::Deflater
 use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
@@ -161,6 +162,14 @@ get '/proxy' do
     end
 
     begin
+        params['url'].sub!(/:\/\/([^\/]+)/) {|match|
+            words = $1.split('.')
+            words.each_with_index {|word, i|
+                next if word =~ /[0-9a-z\-]/
+                words[i] = "xn--#{Punycode.encode(word)}"
+            }
+            "://#{words.join('.')}"
+        }
         if /^https?:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
             uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
             res = Net::HTTP.start(uri.host, uri.port) {|http|
@@ -169,13 +178,23 @@ get '/proxy' do
             tiqav_hash = JSON.parse(res.body)
             uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
+            is_jpgto = false
             uri = URI.parse(params['url'])
-            #if /^.+¥.jpg¥.to$/ =~ uri.host
-            #end
+            if /^(.+)\.jpg\.to$/ =~ uri.host
+                is_jpgto = true
+            end
         end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
+        if is_jpgto then
+            if /<img.+src="(.+)" \/>/ =~ res.body
+                uri = URI.parse(Regexp.last_match(1))
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+        end
     rescue Exception => e
         logger.error e.to_s
         halt 500, 'url error'
