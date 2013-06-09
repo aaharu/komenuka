@@ -32,7 +32,7 @@ var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker
         url = $imageUrlText.val();
         if ((/^http:\/\//i).test(url)) {
             url = url.substring(7);
-            ptn = url.match(/^(img\.)?tiqav\.com\/([\w\d]+\.(jpg|gif|png))$/i);
+            ptn = url.match(/^(img\.)?tiqav\.com\/([\w\d]+(\.jpg|\.gif|\.png)?)$/i);
         }
         if (ptn === null || ptn === undefined) {
             $outUrl.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url));

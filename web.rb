@@ -269,6 +269,14 @@ get '/image/v1/*/*' do |command, url|
                 url = url.sub(':/', '://')
             end
         end
+        url.sub!(/:\/\/([^\/]+)/) {|match|
+            words = $1.split('.')
+            words.each_with_index {|word, i|
+                next if word =~ /[0-9a-z\-]/
+                words[i] = "xn--#{Punycode.encode(word)}"
+            }
+            "://#{words.join('.')}"
+        }
         uri = URI.parse(url)
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
