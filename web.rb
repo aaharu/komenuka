@@ -292,9 +292,14 @@ get '/image/v1/*/*' do |command, url|
     saveRecentUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type res.content_type
-    expires 259200, :public
-    image.to_blob
+    logger.info request.user_agent
+    if /^Twitterbot\// =~ request.user_agent
+        :erb image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
+    else
+        expires 259200, :public
+        content_type res.content_type
+        image.to_blob
+    end
 end
 
 get '/tiqav/v1/*/*' do |command, id|
