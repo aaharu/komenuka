@@ -170,6 +170,7 @@ get '/proxy' do
             }
             "://#{words.join('.')}"
         }
+        is_html = false
         if /^https?:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
             uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
             res = Net::HTTP.start(uri.host, uri.port) {|http|
@@ -178,17 +179,20 @@ get '/proxy' do
             tiqav_hash = JSON.parse(res.body)
             uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
-            is_jpgto = false
             uri = URI.parse(params['url'])
-            if /^(.+)\.jpg\.to$/ =~ uri.host
-                is_jpgto = true
+            if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
+                is_html = true
+            else
+                if /^(.+)\.jpg\.to$/ =~ uri.host
+                    is_html = true
+                end
             end
         end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        if is_jpgto then
-            if /<img.+src="(.+)" \/>/ =~ res.body
+        if is_html then
+            if /<img.+src="([^"]+)".+>/ =~ res.body
                 uri = URI.parse(Regexp.last_match(1))
                 res = Net::HTTP.start(uri.host, uri.port) {|http|
                     http.get(uri.path)
@@ -228,13 +232,37 @@ get '/image/v1' do
             url = 'http://' + url
         else
             unless url.index('://') then
-                url = url.sub(':/', '://')
+                url.sub!(':/', '://')
             end
         end
+        url.sub!(/:\/\/([^\/]+)/) {|match|
+            words = $1.split('.')
+            words.each_with_index {|word, i|
+                next if word =~ /[0-9a-z\-]/
+                words[i] = "xn--#{Punycode.encode(word)}"
+            }
+            "://#{words.join('.')}"
+        }
         uri = URI.parse(url)
+        is_html = false
+        if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+            is_html = true
+        else
+            if /^(.+)\.jpg\.to$/ =~ uri.host
+                is_html = true
+            end
+        end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
+        if is_html then
+            if /<img.+src="([^"]+)".+>/ =~ res.body
+                uri = URI.parse(Regexp.last_match(1))
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+        end
         image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
         logger.info url
@@ -266,7 +294,7 @@ get '/image/v1/*/*' do |command, url|
             url = 'http://' + url
         else
             unless url.index('://') then
-                url = url.sub(':/', '://')
+                url.sub!(':/', '://')
             end
         end
         url.sub!(/:\/\/([^\/]+)/) {|match|
@@ -278,9 +306,25 @@ get '/image/v1/*/*' do |command, url|
             "://#{words.join('.')}"
         }
         uri = URI.parse(url)
+        is_html = false
+        if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+            is_html = true
+        else
+            if /^(.+)\.jpg\.to$/ =~ uri.host
+                is_html = true
+            end
+        end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
+        if is_html then
+            if /<img.+src="([^"]+)".+>/ =~ res.body
+                uri = URI.parse(Regexp.last_match(1))
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+        end
         image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
         logger.info url
@@ -289,17 +333,12 @@ get '/image/v1/*/*' do |command, url|
     end
 
     editImage(command_hash, image)
+    saveRecentUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if /^Twitterbot\// =~ request.user_agent && params.has_key?('1')
-        erb :image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
-    else
-        saveRecentUrl(command, url)
-
-        expires 259200, :public
-        content_type res.content_type
-        image.to_blob
-    end
+    content_type res.content_type
+    expires 259200, :public
+    image.to_blob
 end
 
 get '/tiqav/v1/*/*' do |command, id|
