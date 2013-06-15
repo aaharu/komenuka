@@ -180,24 +180,18 @@ get '/proxy' do
             uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
             uri = URI.parse(params['url'])
-            if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
                 is_html = true
-            else
-                if /^(.+)\.jpg\.to$/ =~ uri.host
-                    is_html = true
-                end
             end
         end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        if is_html then
-            if /<img.+src="([^"]+)".+>/ =~ res.body
-                uri = URI.parse(Regexp.last_match(1))
-                res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
-                }
-            end
+        if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+            uri = URI.parse($1)
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
         end
     rescue Exception => e
         logger.error e.to_s
@@ -245,23 +239,17 @@ get '/image/v1' do
         }
         uri = URI.parse(url)
         is_html = false
-        if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+        if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
             is_html = true
-        else
-            if /^(.+)\.jpg\.to$/ =~ uri.host
-                is_html = true
-            end
         end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        if is_html then
-            if /<img.+src="([^"]+)".+>/ =~ res.body
-                uri = URI.parse(Regexp.last_match(1))
-                res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
-                }
-            end
+        if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+            uri = URI.parse($1)
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
         end
         image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
@@ -307,23 +295,17 @@ get '/image/v1/*/*' do |command, url|
         }
         uri = URI.parse(url)
         is_html = false
-        if /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+        if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
             is_html = true
-        else
-            if /^(.+)\.jpg\.to$/ =~ uri.host
-                is_html = true
-            end
         end
         res = Net::HTTP.start(uri.host, uri.port) {|http|
             http.get(uri.path)
         }
-        if is_html then
-            if /<img.+src="([^"]+)".+>/ =~ res.body
-                uri = URI.parse(Regexp.last_match(1))
-                res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
-                }
-            end
+        if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+            uri = URI.parse($1)
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
         end
         image = Magick::Image.from_blob(res.body).shift
     rescue Exception => e
