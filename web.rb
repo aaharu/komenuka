@@ -294,7 +294,7 @@ get '/image/v1/*/*' do |command, url|
     headers['Access-Control-Allow-Origin'] = '*'
     logger.info request.user_agent
     if /^Twitterbot\// =~ request.user_agent
-        :erb image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
+        erb :image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
     else
         expires 259200, :public
         content_type res.content_type
