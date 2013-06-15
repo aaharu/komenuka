@@ -3,14 +3,22 @@
     <head>
         <meta charset="utf-8" />
         <title>komenuka</title>
-        <meta content="komenuka は、動的画像変換サービスです。" name="description" />
+        <meta content="komenuka は、動的画像変換サービスです。画像にコメントを追加することができます。" name="description" />
         <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
         <link href="/css/bootstrap.min.css" rel="stylesheet" />
         <link href="/css/komenuka.css?3" rel="stylesheet" />
+        <meta property="og:title" content="komenuka" />
+        <meta property="og:site_name" content="komenuka" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://komenuka.herokuapp.com/" />
+        <meta property="og:image" content="http://komenuka.herokuapp.com/favicon.ico" />
+        <meta property="og:description" content="komenuka は、動的画像変換サービスです。画像にコメントを追加することができます。" />
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
         <header>
             <h1>komenuka</h1>
             <p class="lead">URL for edited image.</p>
@@ -22,6 +30,7 @@
 <% end %>
         </div>
         <footer>
+            <div class="fb-like" data-href="http://komenuka.herokuapp.com/" data-send="false" data-width="450" data-show-faces="true"></div><br />
             using <a href="http://ipafont.ipa.go.jp/">IPA Font</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a>, <a href="http://jscolor.com/">jscolor</a>, <a href="http://jonobr1.github.io/stalactite/">stalactite</a>, <a href="http://www.createjs.com/#!/EaselJS">EaselJS</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
             <small>&#169; aaharu</small>
         </footer>
