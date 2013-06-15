@@ -289,12 +289,13 @@ get '/image/v1/*/*' do |command, url|
     end
 
     editImage(command_hash, image)
-    saveRecentUrl(command, url)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if /^Twitterbot\// =~ request.user_agent
+    if /^Twitterbot\// =~ request.user_agent && params.has_key?('1')
         erb :image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
     else
+        saveRecentUrl(command, url)
+
         expires 259200, :public
         content_type res.content_type
         image.to_blob
