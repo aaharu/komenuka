@@ -30,311 +30,21 @@
 this.createjs = this.createjs||{};
 
 (function() {
-	
-/**
- * Display one or more lines of dynamic text (not user editable) in the display list. Line wrapping support (using the
- * lineWidth) is very basic, wrapping on spaces and tabs only. Note that as an alternative to Text, you can position HTML
- * text above or below the canvas relative to items in the display list using the {{#crossLink "DisplayObject/localToGlobal"}}{{/crossLink}}
- * method, or using {{#crossLink "DOMElement"}}{{/crossLink}}.
- *
- * <b>Please note that Text does not support HTML text, and can only display one font style at a time.</b> To use
- * multiple font styles, you will need to create multiple text instances, and position them manually.
- *
- * <h4>Example</h4>
- *      var text = new createjs.TextEx("Hello World", "20px Arial", "#ff7700");
- *      text.x = 100;
- *      text.textBaseline = "alphabetic";
- *
- * CreateJS Text supports web fonts (the same rules as Canvas). The font must be loaded and supported by the browser
- * before it can be displayed.
- *
- * <strong>Note:</strong> Text can be expensive to generate, so cache instances where possible. Be aware that not all
- * browsers will render Text exactly the same. *
- * @class Text
- * @extends DisplayObject
- * @constructor
- * @param {String} [text] The text to display.
- * @param {String} [font] The font style to use. Any valid value for the CSS font attribute is acceptable (ex. "bold
- * 36px Arial").
- * @param {String} [color] The color to draw the text in. Any valid value for the CSS color attribute is acceptable (ex.
- * "#F00", "red", or "#FF0000").
- **/
+
 var TextEx = function(text, font, color) {
   this.initialize(text, font, color);
 }
-var p = TextEx.prototype = new createjs.DisplayObject();
-
-	/**
-	 * @property _workingContext
-	 * @type CanvasRenderingContext2D
-	 * @private
-	 **/
-	TextEx._workingContext = (createjs.createCanvas?createjs.createCanvas():document.createElement("canvas")).getContext("2d");
-
+var p = TextEx.prototype = new createjs.Text();
 // public properties:
 	/**
-	 * The text to display.
-	 * @property text
-	 * @type String
-	 **/
-	p.text = "";
-	
-	/**
-	 * The font style to use. Any valid value for the CSS font attribute is acceptable (ex. "bold 36px Arial"). 
-	 * @property font
-	 * @type String
-	 **/
-	p.font = null;
-	
-	/**
-	 * The color to draw the text in. Any valid value for the CSS color attribute is acceptable (ex. "#F00"). Default is "#000".
-	 * @property color
-	 * @type String
-	 **/
-	p.color = "#000";
-	
-	/**
-	 * The horizontal text alignment. Any of "start", "end", "left", "right", and "center". For detailed 
-	 * information view the 
-	 * <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#text-styles">
-	 * whatwg spec</a>. Default is "left".
-	 * @property textAlign
-	 * @type String
-	 **/
-	p.textAlign = "left";
-	
-	/** The vertical alignment point on the font. Any of "top", "hanging", "middle", "alphabetic", 
-	 * "ideographic", or "bottom". For detailed information view the 
-	 * <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#text-styles">
-	 * whatwg spec</a>. Default is "top".
-	 * @property textBaseline
-	 * @type String
-	*/
-	p.textBaseline = "top";
-	
-	/** The maximum width to draw the text. If maxWidth is specified (not null), the text will be condensed or 
-	 * shrunk to make it fit in this width. For detailed information view the 
-	 * <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#text-styles">
-	 * whatwg spec</a>.
-	 * @property maxWidth
-	 * @type Number
-	*/
-	p.maxWidth = null;
-	
-	/** If true, the text will be drawn as a stroke (outline). If false, the text will be drawn as a fill.
-	 * @property outline
-	 * @type Boolean
-	 **/
-	p.outline = false;
-	
-	/** Indicates the line height (vertical distance between baselines) for multi-line text. If null or 0, 
-	 * the value of getMeasuredLineHeight is used.
-	 * @property lineHeight
-	 * @type Number
-	 **/
-	p.lineHeight = 0;
-	
-	/**
-	 * Indicates the maximum width for a line of text before it is wrapped to multiple lines. If null, 
-	 * the text will not be wrapped.
-	 * @property lineWidth
-	 * @type Number
-	 **/
-	p.lineWidth = null;
-	
-	/**
-	 * Indicates the text direction. Any of "horizontal" or "vertical". Default is "horizontal".
-	 * @property direction
+	 * Indicates the text direction. Any of "tb" or "rl". Default is "tb".
+	 * @property blockProgression
 	 * @type String
 	 */
-	p.direction = "horizontal";
-	
-// constructor:
-	/**
-	 * @property DisplayObject_initialize
-	 * @private
-	 * @type Function
-	 **/
-	p.DisplayObject_initialize = p.initialize;
-	
-	/** 
-	 * Initialization method.
-	 * @method initialize
-	 * @protected
-	*/
-	p.initialize = function(text, font, color) {
-		this.DisplayObject_initialize();
-		this.text = text;
-		this.font = font;
-		this.color = color ? color : "#000";
-	}
-	
-	/**
-	 * Returns true or false indicating whether the display object would be visible if drawn to a canvas.
-	 * This does not account for whether it would be visible within the boundaries of the stage.
-	 * NOTE: This method is mainly for internal use, though it may be useful for advanced uses.
-	 * @method isVisible
-	 * @return {Boolean} Whether the display object would be visible if drawn to a canvas
-	 **/
-	p.isVisible = function() {
-		var hasContent = this.cacheCanvas || (this.text != null && this.text !== "");
-		return !!(this.visible && this.alpha > 0 && this.scaleX != 0 && this.scaleY != 0 && hasContent);
-	}
+	p.blockProgression = "tb";
 
-	/**
-	 * @property DisplayObject_draw
-	 * @private
-	 * @type Function
-	 **/
-	p.DisplayObject_draw = p.draw;
-	
-	/**
-	 * Draws the TextEx into the specified context ignoring it's visible, alpha, shadow, and transform.
-	 * Returns true if the draw was handled (useful for overriding functionality).
-	 * NOTE: This method is mainly for internal use, though it may be useful for advanced uses.
-	 * @method draw
-	 * @param {CanvasRenderingContext2D} ctx The canvas 2D context object to draw into.
-	 * @param {Boolean} ignoreCache Indicates whether the draw operation should ignore any current cache. 
-	 * For example, used for drawing the cache (to prevent it from simply drawing an existing cache back
-	 * into itself).
-	 **/
-	p.draw = function(ctx, ignoreCache) {
-		if (this.DisplayObject_draw(ctx, ignoreCache)) { return true; }
-		
-		if (this.outline) { ctx.strokeStyle = this.color; }
-		else { ctx.fillStyle = this.color; }
-		ctx.font = this.font;
-		ctx.textAlign = this.textAlign||"start";
-		ctx.textBaseline = this.textBaseline||"alphabetic";
-
-		this._drawText(ctx);
-		return true;
-	}
-	
-	/**
-	 * Returns the measured, untransformed width of the text without wrapping.
-	 * @method getMeasuredWidth
-	 * @return {Number} The measured, untransformed width of the text.
-	 **/
-	p.getMeasuredWidth = function() {
-		return this._getWorkingContext().measureText(this.text).width;
-	}
-
-	/**
-	 * Returns an approximate line height of the text, ignoring the lineHeight property. This is based on the measured
-	 * width of a "M" character multiplied by 1.2, which approximates em for most fonts.
-	 * @method getMeasuredLineHeight
-	 * @return {Number} an approximate line height of the text, ignoring the lineHeight property. This is 
-	 * based on the measured width of a "M" character multiplied by 1.2, which approximates em for most fonts.
-	 **/
-	p.getMeasuredLineHeight = function() {
-		return this._getWorkingContext().measureText("M").width*1.2;
-	}
-
-	/**
-	 * Returns the approximate height of multi-line text by multiplying the number of lines against either the
-	 * <code>lineHeight</code> (if specified) or {{#crossLink "TextEx/getMeasuredLineHeight"}}{{/crossLink}}. Note that
-	 * this operation requires the text flowing logic to run, which has an associated CPU cost.
-	 * @method getMeasuredHeight
-	 * @return {Number} The approximate height of the drawn multi-line text.
-	 **/
-	p.getMeasuredHeight = function() {
-		return this._drawText()*(this.lineHeight||this.getMeasuredLineHeight());
-	}
-	
-	/**
-	 * Returns a clone of the TextEx instance.
-	 * @method clone
-	 * @return {TextEx} a clone of the TextEx instance.
-	 **/
-	p.clone = function() {
-		var o = new TextEx(this.text, this.font, this.color);
-		this.cloneProps(o);
-		return o;
-	}
-		
-	/**
-	 * Returns a string representation of this object.
-	 * @method toString
-	 * @return {String} a string representation of the instance.
-	 **/
 	p.toString = function() {
-		return "[TextEx (text="+  (this.text.length > 20 ? this.text.substr(0, 17)+"..." : this.text) +")]";
-	}
-	
-// private methods:
-	
-	/**
-	 * @property DisplayObject_cloneProps
-	 * @private
-	 * @type Function
-	 **/
-	p.DisplayObject_cloneProps = p.cloneProps;
-
-	/** 
-	 * @method cloneProps
-	 * @param {TextEx} o
-	 * @protected 
-	 **/
-	p.cloneProps = function(o) {
-		this.DisplayObject_cloneProps(o);
-		o.textAlign = this.textAlign;
-		o.textBaseline = this.textBaseline;
-		o.maxWidth = this.maxWidth;
-		o.outline = this.outline;
-		o.lineHeight = this.lineHeight;
-		o.lineWidth = this.lineWidth;
-	}
-
-	/** 
-	 * @method _getWorkingContext
-	 * @protected 
-	 **/
-	p._getWorkingContext = function() {
-		var ctx = TextEx._workingContext;
-		ctx.font = this.font;
-		ctx.textAlign = this.textAlign||"start";
-		ctx.textBaseline = this.textBaseline||"alphabetic";
-		return ctx;
-	}
-	 
-	/**
-	 * Draws multiline text.
-	 * @method _getWorkingContext
-	 * @protected
-	 * @return {Number} The number of lines drawn.
-	 **/
-	p._drawText = function(ctx) {
-		var paint = !!ctx;
-		if (!paint) { ctx = this._getWorkingContext(); }
-		var lines = String(this.text).split(/(?:\r\n|\r|\n)/);
-		var lineHeight = this.lineHeight||this.getMeasuredLineHeight();
-		var count = 0;
-		for (var i=0, l=lines.length; i<l; i++) {
-			var w = ctx.measureText(lines[i]).width;
-			if (this.lineWidth == null || w < this.lineWidth) {
-				if (paint) { this._drawTextLine(ctx, lines[i], count*lineHeight); }
-				count++;
-				continue;
-			}
-
-			// split up the line
-			var words = lines[i].split(/(\s)/);
-			var str = words[0];
-			for (var j=1, jl=words.length; j<jl; j+=2) {
-				// Line needs to wrap:
-				if (ctx.measureText(str + words[j] + words[j+1]).width > this.lineWidth) {
-					if (paint) { this._drawTextLine(ctx, str, count*lineHeight); }
-					count++;
-					str = words[j+1];
-				} else {
-					str += words[j] + words[j+1];
-				}
-			}
-			if (paint) { this._drawTextLine(ctx, str, count*lineHeight); } // Draw remaining text
-			count++;
-		}
-		return count;
+		return "[TextEx (text="+  (this.text.length > 20 ? this.text.substr(0, 17)+"..." : this.text) +", blockProgression="+this.blockProgression+")]";
 	}
 	
 	/** 
@@ -346,21 +56,79 @@ var p = TextEx.prototype = new createjs.DisplayObject();
 	 **/
 	p._drawTextLine = function(ctx, text, y) {
 		// Chrome 17 will fail to draw the text if the last param is included but null, so we feed it a large value instead:
-		if (this.direction === "vertical") {
-			var lineHeight = this.lineHeight||this.getMeasuredLineHeight();
-			if (this.outline) {
-				for (var i=0, l=text.length; i<l; ++i) {
-					ctx.strokeText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
-				}
-			} else {
-				for (var i=0, l=text.length; i<l; ++i) {
-					ctx.fillText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
-				}
-			}
+		if (this.blockProgression === "rl") {
+			this._drawVerticalTextLine(ctx, text, y);
 		} else {
 			if (this.outline) { ctx.strokeText(text, 0, y, this.maxWidth||0xFFFF); }
 			else { ctx.fillText(text, 0, y, this.maxWidth||0xFFFF); }
 		}
+	}
+
+	p._drawVerticalTextLine = function(ctx, text, y) {
+		var i, l = text.length, lineHeight = this.lineHeight||this.getMeasuredLineHeight();
+		if (this.outline) {
+			for (i=0; i<l; ++i) {
+				this._updateMatrix(ctx, this._getCharType(text.charAt(i)), -y, i*lineHeight, ctx.measureText(text.charAt(i)).width, lineHeight);
+				ctx.strokeText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
+			}
+		} else {
+			for (i=0; i<l; ++i) {
+				this._updateMatrix(ctx, this._getCharType(text.charAt(i)), -y, i*lineHeight, ctx.measureText(text.charAt(i)).width, lineHeight);
+				ctx.fillText(text.charAt(i), -y, i*lineHeight, this.maxWidth||0xFFFF);
+//				currentY += ctx.measureText(text.charAt(i)).width;
+			}
+		}
+	}
+
+	p._updateMatrix = function(ctx, type, x, y, w, h) {
+		var matrix = this.getMatrix();
+		matrix.appendMatrix(this._getVerticalTextMatrix(type, x, y, w, h));
+		ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+	}
+
+	p._getCharType = function(c) {
+		if (c === "\u30FC" || c === "\u301C" || c === "\uFF5E" || c === "\u2026" || c === "\uFF1D") {
+			return "long";
+		} else if (c === "\u3001" || c === "\uFF0C" || c === "\u3002" || c === "\uFF0E") {
+			return "punctuation";
+		} else if (/^[\u3041\u3043\u3045\u3047\u3049\u3083\u3085\u3087\u3063\u30A1\u30A3\u30A5\u30A7\u30A9\u30E3\u30E5\u30E7\u30C3]$/.test(c)) {
+			return "small";
+		} else if (/^[\u3009\u300B\u300D\u300F\u3011\u3015\u3017\u3019\uFF09\uFF5D\uFF60\u3008\u300A\u300C\u300E\u3010\u3014\u3016\u3018\uFF08\uFF5B\uFF5F\uFF1C\uFF1E]$/.test(c)) {
+			return "parentheses";
+//		} else if (c === "(" || c === ")" || c === "<" || c === ">" || c === "{" || c === "}" || c === "[" || c === "]") {
+//			return "ascii-parentheses";
+		}
+		return "";
+	}
+
+	p._getVerticalTextMatrix = function(type, x, y, w, h) {
+		switch (type) {
+			case "long":
+				return this._calculateMatrix(1, -1, 270, -x + y + w/2, x - y - h/2);
+				break;
+			case "punctuation":
+				return this._calculateMatrix(1, 1, 0, 0.625 * w, -0.625 * h);
+				break;
+			case "small":
+				return this._calculateMatrix(1, 1, 0, 0.125 * w, -0.125 * h);
+				break;
+			case "parentheses":
+				return this._calculateMatrix(1, 1, 90, -x + y + h/2, -x - y - w/2);
+				break;
+//			case "ascii-parentheses":
+//				return this._calculateMatrix(1, 1, 90, -x + y + w, x - y - h);
+//				break;
+			default:
+				return new createjs.Matrix2D(1, 0, 0, 1, 0, 0);
+				break;
+		}
+	}
+
+	p._calculateMatrix = function(sx, sy, deg, dx, dy) {
+		var rad = deg * Math.PI / 180;
+		var cos = Math.cos(rad);
+		var sin = Math.sin(rad);
+		return new createjs.Matrix2D(sx * cos, sy * sin, -sx * sin, sy * cos, sx * (cos * dx - sin * dy), sy * (sin * dx + cos * dy));
 	}
 
 createjs.TextEx = TextEx;

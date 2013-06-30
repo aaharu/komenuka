@@ -86,7 +86,7 @@ var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker
                         text = new createjs.TextEx(t, size + "px Arial", color);
                         text.x = x1;
                         text.y = y1;
-                        text.direction = "vertical";
+                        text.blockProgression = "rl";
                         text.textAlign = "center";
                         stage.addChild(text);
                         stage.update();
@@ -218,7 +218,7 @@ var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker
                     text.x = mouseDownEvent.stageX|0;
                     text.y = mouseDownEvent.stageY|0;
                     text.alpha = 0.6;
-                    text.direction = "vertical";
+                    text.blockProgression = "rl";
                     text.textAlign = "center";
                     stage.addChild(text);
                     stage.update();
