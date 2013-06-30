@@ -102,7 +102,7 @@
             });
 
             $("#imageUrlBtn").click(function() {
-                var url = $imageUrlText.val(), img;
+                var url = $imageUrlText.val(), img, ptn;
                 $rectangleBtn.attr({"disabled": "disabled"});
                 $annotateBtn.attr({"disabled": "disabled"});
                 $tategakiBtn.attr({"disabled": "disabled"});
@@ -121,7 +121,17 @@
                         $tategakiBtn.removeAttr("disabled");
                         $undoBtn.removeAttr("disabled");
                     }
-                    img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
+                    ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i);
+                    if (ptn !== null) {
+                        // あとでちゃんとかく
+                        $.get("/proxy?url=http://api.tiqav.com/images/" + ptn[1] + ".json", function(data) {
+                            url = "http://tiqav.com/" + data.id + "." + data.ext;
+                            $imageUrlText.val(url);
+                            img.src = "/proxy?url=" + encodeURI(url);
+                        });
+                    } else {
+                        img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
+                    }
 
                     $rectangleBtn.click(function() {
                         $drawText.attr({"disabled": "disabled"});
