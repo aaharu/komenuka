@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /clear/
+Disallow: /image/
+Disallow: /tiqav/
