@@ -15,7 +15,8 @@ IMAGE_NUM_MAX = 15
 LONG_CHARACTERS = ["\u30FC", "\u301C", "\uFF5E", "\u2026", "\uFF1D"]
 SMALL_CHARACTERS = ["\u3041", "\u3043", "\u3045", "\u3047", "\u3049", "\u3083", "\u3085", "\u3087", "\u3063", "\u30A1", "\u30A3", "\u30A5", "\u30A7", "\u30A9", "\u30E3", "\u30E5", "\u30E7", "\u30C3"]
 PUNCTUATION_CHARACTERS = ["\u3001", "\uFF0C", "\u3002", "\uFF0E"]
-PARENTHESIS_CHARACTERS = ["\u3009", "\u300B", "\u300D", "\u300F", "\u3011", "\u3015", "\u3017", "\u3019", "\uFF09", "\uFF5D", "\uFF60", "\u3008", "\u300A", "\u300C", "\u300E", "\u3010", "\u3014", "\u3016", "\u3018", "\uFF08", "\uFF5B", "\uFF5F", "\uFF1C", "\uFF1E"]
+PARENTHESIS_CHARACTERS = ["\u3009", "\u300B", "\u300D", "\u300F", "\u3011", "\u3015", "\u3017", "\u3019", "\uFF09", "\uFF5D", "\uFF60", "\u3008", "\u300A", "\u300C", "\u300E", "\u3010", "\u3014", "\u3016", "\u3018", "\uFF08", "\uFF5B", "\uFF5F", "\uFF1C", "\uFF1E", "\u201C", "\u201D", "\u2018", "\u2019"]
+ASCII_CHARACTERS = ['"', "'", '-', '/', ':', ';', '<', '=', '>', '[', ']', '\\', ']', '{', '|', '}']
 
 def selectFont(fontFamily)
     case fontFamily
@@ -101,31 +102,43 @@ def editImage(command_hash, image)
                             # AffineMatrixのtx,tyが効かないので無理やり合わせる
                             drawX = x - fontSize * j
                             drawY = y + fontSize * (i + 1)
+                            type = 0
                             if LONG_CHARACTERS.include?(line[i]) then
+                                type = 1
                                 drawX += 0.35 * fontSize
                                 drawY -= 0.35 * fontSize
                             elsif SMALL_CHARACTERS.include?(line[i]) then
+                                type = 2
                                 drawX += 0.125 * fontSize
                                 drawY -= 0.125 * fontSize
                             elsif PUNCTUATION_CHARACTERS.include?(line[i]) then
+                                type = 3
                                 drawX += 0.625 * fontSize
                                 drawY -= 0.625 * fontSize
                             elsif PARENTHESIS_CHARACTERS.include?(line[i]) then
+                                type = 4
                                 drawX -= 0.45 * fontSize
                                 drawY -= 0.35 * fontSize
+                            elsif ASCII_CHARACTERS.include?(line[i]) then
+                                # 半角以上の幅をとっているけどとりあえずこのままで
+                                type = 5
+                                drawX -= 0.375 * fontSize
+                                drawY -= 0.3 * fontSize
                             end
                             draw.annotate(image, image.columns, image.rows, drawX, drawY, line[i]) do
                                 self.font = "fonts/#{fontFamily}.ttf"
                                 self.align = Magick::CenterAlign
                                 self.fill = arg.fetch('color', '#000000')
                                 self.pointsize = fontSize
-                                if LONG_CHARACTERS.include?(line[i]) then
+                                if type == 1 then
                                     self.affine = calculateMatrix(1, -1, 270, 0, 0)
-                                elsif SMALL_CHARACTERS.include?(line[i]) then
+                                elsif type == 2 then
                                     self.affine = calculateMatrix(1, 1, 0, 0, 0)
-                                elsif PUNCTUATION_CHARACTERS.include?(line[i]) then
+                                elsif type == 3 then
                                     self.affine = calculateMatrix(1, 1, 0, 0, 0)
-                                elsif PARENTHESIS_CHARACTERS.include?(line[i]) then
+                                elsif type == 4 then
+                                    self.affine = calculateMatrix(1, 1, 90, 0, 0)
+                                elsif type == 5 then
                                     self.affine = calculateMatrix(1, 1, 90, 0, 0)
                                 end
                             end
