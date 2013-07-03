@@ -1,5 +1,5 @@
-source :rubygems
-ruby '1.9.2'
+source 'http://rubygems.org'
+ruby '2.0.0'
 gem 'sinatra', '~> 1.4'
 gem 'rmagick', '~> 2.13', :require => 'RMagick'
 gem 'dalli', '~> 2.6'
