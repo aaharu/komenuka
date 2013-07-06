@@ -26,7 +26,7 @@
         <a href="/readme" id="readme">readme</a>
         <div id="list">
 <% images.each do |item| %>
-            <a href="<%= item %>"><img src="<%= item %>" width="300" height="300" class="img-polaroid" /></a>
+            <a href="<%= item['url'] %>"><img src="<%= item['pre'] %><%= Base64.encode64(item['img'].to_blob) %>" width="300" height="300" class="img-polaroid" /></a>
 <% end %>
         </div>
         <footer>

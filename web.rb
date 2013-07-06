@@ -8,6 +8,7 @@ require 'dalli'
 require 'set'
 require 'rack/contrib'
 require 'punycode'
+require 'base64'
 
 use Rack::Deflater
 use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
@@ -155,24 +156,34 @@ def editImage(command_hash, image)
     end
 end
 
-def saveRecentUrl(command, url)
+def saveRecentUrl(url, image)
     begin
-        dc = Dalli::Client.new(
-            ENV['MEMCACHIER_SERVERS'],
-            {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
-        )
-        image_set = dc.get('set')
-        unless image_set
-            image_set = Set.new
+        prefix = ''
+        if image.format == 'JPEG' then
+            prefix = 'data:image/jpg;base64,'
+        elsif image.format == 'GIF' then
+            prefix = 'data:image/gif;base64,'
+        elsif image.format == 'PNG' then
+            prefix = 'data:image/png;base64,'
         end
-        if image_set.length > IMAGE_NUM_MAX
-            tmp = image_set.to_a.shift
-            tmp.push("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-            image_set = Set.new(tmp)
-        else
-            image_set.add("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
+        if prefix != '' then
+            dc = Dalli::Client.new(
+                ENV['MEMCACHIER_SERVERS'],
+                {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
+            )
+            image_set = dc.get('set')
+            unless image_set
+                image_set = Set.new
+            end
+            if image_set.length > IMAGE_NUM_MAX
+                tmp = image_set.to_a.shift
+                tmp.push({'url' => url, 'pre' => prefix, 'img' => image})
+                image_set = Set.new(tmp)
+            else
+                image_set.add({'url' => url, 'pre' => prefix, 'img' => image})
+            end
+            dc.set('set', image_set)
         end
-        dc.set('set', image_set)
     rescue Exception => e
         logger.warn e.to_s
     end
@@ -310,7 +321,7 @@ get '/image/v1' do
 
     editImage(command_hash, image)
     if command_hash then
-        saveRecentUrl(command, url)
+        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
@@ -365,7 +376,7 @@ get '/image/v1/*/*' do |command, url|
     end
 
     editImage(command_hash, image)
-    saveRecentUrl(command, url)
+    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
@@ -402,7 +413,7 @@ get '/tiqav/v1/*/*' do |command, id|
     end
 
     editImage(command_hash, image)
-    saveRecentUrl(command, uri.to_s)
+    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     content_type res.content_type
