@@ -33,6 +33,7 @@ main{
 }
 #list img{
 	opacity: 0.4;
+	cursor: pointer;
 }
 #list img:hover{
 	opacity: 1;
