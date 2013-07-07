@@ -2,3 +2,7 @@ User-agent: *
 Disallow: /clear/
 Disallow: /image/
 Disallow: /tiqav/
+
+User-agent: Twitterbot
+Allow: /image/
+Allow: /tiqav/
