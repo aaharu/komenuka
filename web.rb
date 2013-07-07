@@ -9,6 +9,7 @@ require 'set'
 require 'rack/contrib'
 require 'punycode'
 require 'base64'
+require 'iron_cache'
 
 use Rack::Deflater
 use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img'], :root => 'public'
@@ -176,7 +177,7 @@ end
 
 def saveRecentUrl(url, image)
     begin
-        prefix = ''
+        prefix = nil
         if image.format == 'JPEG' then
             prefix = 'data:image/jpg;base64,'
         elsif image.format == 'GIF' then
@@ -184,7 +185,7 @@ def saveRecentUrl(url, image)
         elsif image.format == 'PNG' then
             prefix = 'data:image/png;base64,'
         end
-        if prefix != '' then
+        if prefix then
             dc = Dalli::Client.new(
                 ENV['MEMCACHIER_SERVERS'],
                 {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
@@ -291,7 +292,24 @@ get '/image/v1' do
     end
 
     command_hash = nil
+    image = nil
+    use_cache = false
+    img_url = nil
+    ironcache = IronCache::Client.new
+    cache = ironcache.cache('image_cache')
     if command then
+        begin
+            img_url = Base64.urlsafe_encode64(command + '*' + url)
+
+            item = cache.get(img_url)
+            if item then
+                image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
+                use_cache = true
+            end
+        rescue Exception => e
+            logger.warn e.to_s
+        end
+
         begin
             command_hash = JSON.parse(command)
         rescue Exception => e
@@ -300,50 +318,67 @@ get '/image/v1' do
         end
     end
 
-    begin
-        unless /^http/ =~ url
-            url = 'http://' + url
-        else
-            unless url.index('://') then
-                url.sub!(':/', '://')
+    unless image then
+        begin
+            unless /^http/ =~ url
+                url = 'http://' + url
+            else
+                unless url.index('://') then
+                    url.sub!(':/', '://')
+                end
             end
-        end
-        url.sub!(/:\/\/([^\/]+)/) {|match|
-            words = $1.split('.')
-            words.each_with_index {|word, i|
-                next if word =~ /[0-9a-z\-]/
-                words[i] = "xn--#{Punycode.encode(word)}"
+            url.sub!(/:\/\/([^\/]+)/) {|match|
+                words = $1.split('.')
+                words.each_with_index {|word, i|
+                    next if word =~ /[0-9a-z\-]/
+                    words[i] = "xn--#{Punycode.encode(word)}"
+                }
+                "://#{words.join('.')}"
             }
-            "://#{words.join('.')}"
-        }
-        uri = URI.parse(url)
-        is_html = false
-        if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
-            is_html = true
-        end
-        res = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-        if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
-            uri = URI.parse($1)
+            uri = URI.parse(url)
+            is_html = false
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+                is_html = true
+            end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
             }
+            if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+                uri = URI.parse($1)
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+            image = Magick::Image.from_blob(res.body).shift
+        rescue Exception => e
+            logger.info url
+            logger.error e.to_s
+            halt 500, 'url error'
         end
-        image = Magick::Image.from_blob(res.body).shift
-    rescue Exception => e
-        logger.info url
-        logger.error e.to_s
-        halt 500, 'url error'
     end
 
-    editImage(command_hash, image)
     if command_hash then
-        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+        unless use_cache then
+            editImage(command_hash, image)
+            saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+            begin
+                cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
+            rescue Exception => e
+                logger.warn e.to_s
+            end
+        end
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type res.content_type
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
+    else
+        halt 500
+    end
     expires 259200, :public
     image.to_blob
 end
@@ -356,48 +391,80 @@ get '/image/v1/*/*' do |command, url|
         halt 400, 'command error'
     end
 
+    use_cache = false
+    img_url = nil
     begin
-        unless /^http/ =~ url
-            url = 'http://' + url
-        else
-            unless url.index('://') then
-                url.sub!(':/', '://')
+        ironcache = IronCache::Client.new
+        cache = ironcache.cache('image_cache')
+        img_url = Base64.urlsafe_encode64(command + '*' + url)
+        item = cache.get(img_url)
+        if item then
+            image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
+            use_cache = true
+        end
+    rescue Exception => e
+        logger.warn e.to_s
+    end
+
+    unless image then
+        begin
+            unless /^http/ =~ url
+                url = 'http://' + url
+            else
+                unless url.index('://') then
+                    url.sub!(':/', '://')
+                end
             end
-        end
-        url.sub!(/:\/\/([^\/]+)/) {|match|
-            words = $1.split('.')
-            words.each_with_index {|word, i|
-                next if word =~ /[0-9a-z\-]/
-                words[i] = "xn--#{Punycode.encode(word)}"
+            url.sub!(/:\/\/([^\/]+)/) {|match|
+                words = $1.split('.')
+                words.each_with_index {|word, i|
+                    next if word =~ /[0-9a-z\-]/
+                    words[i] = "xn--#{Punycode.encode(word)}"
+                }
+                "://#{words.join('.')}"
             }
-            "://#{words.join('.')}"
-        }
-        uri = URI.parse(url)
-        is_html = false
-        if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
-            is_html = true
-        end
-        res = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-        if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
-            uri = URI.parse($1)
+            uri = URI.parse(url)
+            is_html = false
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+                is_html = true
+            end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
             }
+            if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+                uri = URI.parse($1)
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+            image = Magick::Image.from_blob(res.body).shift
+        rescue Exception => e
+            logger.info url
+            logger.error e.to_s
+            halt 500, 'url error'
         end
-        image = Magick::Image.from_blob(res.body).shift
-    rescue Exception => e
-        logger.info url
-        logger.error e.to_s
-        halt 500, 'url error'
     end
 
-    editImage(command_hash, image)
-    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+    unless use_cache then
+        editImage(command_hash, image)
+        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+        begin
+            cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
+        rescue Exception => e
+            logger.warn e.to_s
+        end
+    end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type res.content_type
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
+    else
+        halt 500
+    end
     expires 259200, :public
     image.to_blob
 end
@@ -410,31 +477,63 @@ get '/tiqav/v1/*/*' do |command, id|
         halt 400, 'command error'
     end
 
+    use_cache = false
+    img_url = nil
     begin
-        unless id.index('.') then
-            uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
+        ironcache = IronCache::Client.new
+        cache = ironcache.cache('image_cache')
+        img_url = Base64.urlsafe_encode64(command + '*' + id)
+        item = cache.get(img_url)
+        if item then
+            image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
+            use_cache = true
+        end
+    rescue Exception => e
+        logger.warn e.to_s
+    end
+
+    unless image then
+        begin
+            unless id.index('.') then
+                uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+                tiqav_hash = JSON.parse(res.body)
+                uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
+            else
+                uri = URI.parse("http://img.tiqav.com/#{id}")
+            end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
             }
-            tiqav_hash = JSON.parse(res.body)
-            uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
-        else
-            uri = URI.parse("http://img.tiqav.com/#{id}")
+            image = Magick::Image.from_blob(res.body).shift
+        rescue Exception => e
+            logger.error e.to_s
+            halt 500, 'url error'
         end
-        res = Net::HTTP.start(uri.host, uri.port) {|http|
-            http.get(uri.path)
-        }
-        image = Magick::Image.from_blob(res.body).shift
-    rescue Exception => e
-        logger.error e.to_s
-        halt 500, 'url error'
     end
 
-    editImage(command_hash, image)
-    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
+    unless use_cache then
+        editImage(command_hash, image)
+        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
+        begin
+            cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
+        rescue Exception => e
+            logger.warn e.to_s
+        end
+    end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    content_type res.content_type
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
+    else
+        halt 500
+    end
     expires 259200, :public
     image.to_blob
 end

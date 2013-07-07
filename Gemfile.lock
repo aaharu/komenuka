@@ -2,12 +2,23 @@ GEM
   remote: http://rubygems.org/
   specs:
     dalli (2.6.4)
+    iron_cache (1.4.0)
+      iron_core (>= 0.5.1)
+    iron_core (0.6.2)
+      rest (>= 2.2.0)
+    mime-types (1.23)
+    net-http-persistent (2.8)
     punycode4r (0.2.0)
     rack (1.5.2)
     rack-contrib (1.1.0)
       rack (>= 0.9.1)
     rack-protection (1.5.0)
       rack
+    rest (2.6.3)
+      net-http-persistent
+      rest-client (>= 0.3.0)
+    rest-client (1.6.7)
+      mime-types (>= 1.16)
     rmagick (2.13.2)
     sinatra (1.4.3)
       rack (~> 1.4)
@@ -20,6 +31,7 @@ PLATFORMS
 
 DEPENDENCIES
   dalli (~> 2.6)
+  iron_cache
   punycode4r (~> 0.2.0)
   rack-contrib
   rmagick (~> 2.13)
