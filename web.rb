@@ -251,7 +251,7 @@ get '/proxy' do
             "://#{words.join('.')}"
         }
         is_html = false
-        if /^https?:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
+        if /^http:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
             uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
@@ -260,7 +260,7 @@ get '/proxy' do
             uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
             uri = URI.parse(params['url'])
-            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
                 is_html = true
             end
         end
@@ -337,7 +337,7 @@ get '/image/v1' do
             }
             uri = URI.parse(url)
             is_html = false
-            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
                 is_html = true
             end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
@@ -425,7 +425,7 @@ get '/image/v1/*/*' do |command, url|
             }
             uri = URI.parse(url)
             is_html = false
-            if /^(.+)\.jpg\.to$/ =~ uri.host or /^https?:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
                 is_html = true
             end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
@@ -456,17 +456,21 @@ get '/image/v1/*/*' do |command, url|
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if image.format == 'JPEG' then
-        content_type 'image/jpg'
-    elsif image.format == 'GIF' then
-        content_type 'image/gif'
-    elsif image.format == 'PNG' then
-        content_type 'image/png'
+    if /^Twitterbot\// =~ request.user_agent && params.has_key?('1')
+        erb :image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
     else
-        halt 500
+        if image.format == 'JPEG' then
+            content_type 'image/jpg'
+        elsif image.format == 'GIF' then
+            content_type 'image/gif'
+        elsif image.format == 'PNG' then
+            content_type 'image/png'
+        else
+            halt 500
+        end
+        expires 259200, :public
+        image.to_blob
     end
-    expires 259200, :public
-    image.to_blob
 end
 
 get '/tiqav/v1/*/*' do |command, id|
