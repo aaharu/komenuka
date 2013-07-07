@@ -284,7 +284,7 @@ get '/proxy' do
     res.body
 end
 
-get '/image/v1' do
+get '/imag.?/v1' do
     command = params['command']
     url = params['url']
     unless url then
