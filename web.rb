@@ -456,8 +456,8 @@ get '/image/v1/*/*' do |command, url|
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if /^Twitterbot\// =~ request.user_agent && params.has_key?('1')
-        erb :image, :locals => {:image => "/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}"}
+    if /^Twitterbot\// =~ request.user_agent
+        erb :image, :locals => {:image => "/image/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}"}
     else
         if image.format == 'JPEG' then
             content_type 'image/jpg'
