@@ -45,3 +45,6 @@ tramp
 Session.vim
 .netrwhist
 *~
+
+# IronCache
+iron.json
