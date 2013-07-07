@@ -529,15 +529,19 @@ get '/tiqav/v1/*/*' do |command, id|
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if image.format == 'JPEG' then
-        content_type 'image/jpg'
-    elsif image.format == 'GIF' then
-        content_type 'image/gif'
-    elsif image.format == 'PNG' then
-        content_type 'image/png'
+    if /^Twitterbot\// =~ request.user_agent
+        erb :image, :locals => {:image => "/image/v1?command=#{URI.encode(command)}&url=#{URI.encode(uri.to_s)}"}
     else
-        halt 500
+        if image.format == 'JPEG' then
+            content_type 'image/jpg'
+        elsif image.format == 'GIF' then
+            content_type 'image/gif'
+        elsif image.format == 'PNG' then
+            content_type 'image/png'
+        else
+            halt 500
+        end
+        expires 259200, :public
+        image.to_blob
     end
-    expires 259200, :public
-    image.to_blob
 end
