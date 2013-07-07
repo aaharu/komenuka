@@ -6,6 +6,8 @@ fonts/LICENSE_J.mplus
 fonts/LICENSE_E.mplus
 fonts/README.sazanami
 
+.travis.yml
+
 KomenukaCanvas.js
 TextEx.js
 jquery.stalactite.js
