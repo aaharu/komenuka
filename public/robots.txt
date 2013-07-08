@@ -1,8 +1,34 @@
 User-agent: Twitterbot
 Disallow:
-Allow: /image/
-Allow: /tiqav/
 
-User-agent: *
+User-agent: Googlebot
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: Googlebot-Image
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: msnbot
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: msnbot-media
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: Baiduspider+
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: BaiduImagespider
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: Yeti
+Disallow: /image/
+Disallow: /tiqav/
+
+User-agent: Yandex
 Disallow: /image/
 Disallow: /tiqav/
