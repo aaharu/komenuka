@@ -124,7 +124,7 @@
                     if (ptn !== null) {
                         // あとでちゃんとかく
                         $.get("/proxy?url=http://api.tiqav.com/images/" + ptn[1] + ".json", function(data) {
-                            url = "http://tiqav.com/" + data.id + "." + data.ext;
+                            url = "http://img.tiqav.com/" + data.id + "." + data.ext;
                             $imageUrlText.val(url);
                             img.src = "/proxy?url=" + encodeURI(url);
                         });
