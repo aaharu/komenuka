@@ -14,6 +14,7 @@ GEM
       rack (>= 0.9.1)
     rack-protection (1.5.0)
       rack
+    rake (10.1.0)
     rest (2.6.3)
       net-http-persistent
       rest-client (>= 0.3.0)
@@ -34,5 +35,6 @@ DEPENDENCIES
   iron_cache
   punycode4r (~> 0.2.0)
   rack-contrib
+  rake
   rmagick (~> 2.13)
   sinatra (~> 1.4)
