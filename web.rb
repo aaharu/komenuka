@@ -1,4 +1,7 @@
 # coding: utf-8
+# komenuka
+# Copyright (c) 2013 aaharu
+# https://raw.github.com/aaharu/komenuka/master/LICENSE
 require 'sinatra'
 require 'RMagick'
 require 'uri'

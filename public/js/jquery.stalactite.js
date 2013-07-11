@@ -1,4 +1,5 @@
-/*!
+/**!
+ * @license
  * jQuery Stalactite : Lightweight Element Packing
  * Examples and documentation at: http://jonobr1.github.com/stalactite
  * Copyright (c) 2011 Jono Brandel

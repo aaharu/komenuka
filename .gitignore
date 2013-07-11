@@ -1,3 +1,6 @@
+# Copyright (c) 2013 GitHub, Inc.
+# https://raw.github.com/github/gitignore/master/LICENSE
+
 # osx
 .DS_Store
 .AppleDouble
@@ -45,6 +48,7 @@ tramp
 Session.vim
 .netrwhist
 *~
+
 
 # IronCache
 iron.json
