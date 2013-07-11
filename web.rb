@@ -64,6 +64,24 @@ def calculateMatrix(sx, sy, deg, dx, dy)
     return Magick::AffineMatrix.new(sx * cos, sy * sin, -sx * sin, sy * cos, sx * (cos * dx - sin * dy), sy * (sin * dx + cos * dy))
 end
 
+def buildUrl(url)
+    unless /^http/ =~ url
+        url = 'http://' + url
+    else
+        unless url.index('://') then
+            url.sub!(':/', '://')
+        end
+    end
+    url.sub!(/:\/\/([^\/]+)/) {|match|
+        words = $1.split('.')
+        words.each_with_index {|word, i|
+            next if word =~ /[0-9a-z\-]/
+                words[i] = "xn--#{Punycode.encode(word)}"
+        }
+        "://#{words.join('.')}"
+    }
+end
+
 def editImage(command_hash, image)
     begin
         if command_hash.key?('rectangle') then
@@ -245,16 +263,10 @@ get '/proxy' do
     end
 
     begin
-        params['url'].sub!(/:\/\/([^\/]+)/) {|match|
-            words = $1.split('.')
-            words.each_with_index {|word, i|
-                next if word =~ /[0-9a-z\-]/
-                words[i] = "xn--#{Punycode.encode(word)}"
-            }
-            "://#{words.join('.')}"
-        }
+        url = params['url']
+        buildUrl(url)
         is_html = false
-        if /^http:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ params['url']
+        if /^http:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ url
             uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
             res = Net::HTTP.start(uri.host, uri.port) {|http|
                 http.get(uri.path)
@@ -262,8 +274,8 @@ get '/proxy' do
             tiqav_hash = JSON.parse(res.body)
             uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
         else
-            uri = URI.parse(params['url'])
-            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ params['url']
+            uri = URI.parse(url)
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
                 is_html = true
             end
         end
@@ -287,57 +299,68 @@ get '/proxy' do
     res.body
 end
 
+get '/image/v1', :agent => /^Twitterbot\// do
+    command = params['command']
+    begin
+        command_hash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+    url = params['url']
+    unless url then
+        halt 400, 'no url parameter'
+    end
+    begin
+        JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+
+    begin
+        buildUrl(url)
+    rescue Exception => e
+        logger.info url
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    erb :image, :locals => {:image => "/bot/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}"}
+end
+
 get '/image/v1' do
     command = params['command']
+    begin
+        command_hash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
     url = params['url']
     unless url then
         halt 400, 'no url parameter'
     end
 
-    command_hash = nil
     image = nil
     use_cache = false
     img_url = nil
     ironcache = IronCache::Client.new
     cache = ironcache.cache('image_cache')
-    if command then
-        begin
-            img_url = Base64.urlsafe_encode64(command + '*' + url)
-
-            item = cache.get(img_url)
-            if item then
-                image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
-                use_cache = true
-            end
-        rescue Exception => e
-            logger.warn e.to_s
+    begin
+        img_url = Base64.urlsafe_encode64(command + '*' + url)
+        item = cache.get(img_url)
+        if item then
+            image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
+            use_cache = true
         end
-
-        begin
-            command_hash = JSON.parse(command)
-        rescue Exception => e
-            logger.error e.to_s
-            halt 400, 'command error'
-        end
+    rescue Exception => e
+        logger.warn e.to_s
     end
 
     unless image then
         begin
-            unless /^http/ =~ url
-                url = 'http://' + url
-            else
-                unless url.index('://') then
-                    url.sub!(':/', '://')
-                end
-            end
-            url.sub!(/:\/\/([^\/]+)/) {|match|
-                words = $1.split('.')
-                words.each_with_index {|word, i|
-                    next if word =~ /[0-9a-z\-]/
-                    words[i] = "xn--#{Punycode.encode(word)}"
-                }
-                "://#{words.join('.')}"
-            }
+            buildUrl(url)
             uri = URI.parse(url)
             is_html = false
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
@@ -360,17 +383,15 @@ get '/image/v1' do
         end
     end
 
-    if command_hash then
-        unless use_cache then
-            editImage(command_hash, image)
-            saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
-            begin
-                cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
-            rescue Exception => e
-                logger.warn e.to_s
-            end
+    unless use_cache then
+        editImage(command_hash, image)
+        begin
+            cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
+        rescue Exception => e
+            logger.warn e.to_s
         end
     end
+    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
 
     headers['Access-Control-Allow-Origin'] = '*'
     if image.format == 'JPEG' then
@@ -384,6 +405,25 @@ get '/image/v1' do
     end
     expires 259200, :public
     image.to_blob
+end
+
+get '/image/v1/*/*', :agent => /^Twitterbot\// do |command, url|
+    begin
+        command_hash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+
+    begin
+        buildUrl(url)
+    rescue Exception => e
+        logger.info url
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    erb :image, :locals => {:image => "/bot/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}"}
 end
 
 get '/image/v1/*/*' do |command, url|
@@ -411,21 +451,7 @@ get '/image/v1/*/*' do |command, url|
 
     unless image then
         begin
-            unless /^http/ =~ url
-                url = 'http://' + url
-            else
-                unless url.index('://') then
-                    url.sub!(':/', '://')
-                end
-            end
-            url.sub!(/:\/\/([^\/]+)/) {|match|
-                words = $1.split('.')
-                words.each_with_index {|word, i|
-                    next if word =~ /[0-9a-z\-]/
-                    words[i] = "xn--#{Punycode.encode(word)}"
-                }
-                "://#{words.join('.')}"
-            }
+            buildUrl(url)
             uri = URI.parse(url)
             is_html = false
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
@@ -450,30 +476,53 @@ get '/image/v1/*/*' do |command, url|
 
     unless use_cache then
         editImage(command_hash, image)
-        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
         begin
             cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
         rescue Exception => e
             logger.warn e.to_s
         end
     end
+    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if /^Twitterbot\// =~ request.user_agent
-        erb :image, :locals => {:url => request.url, :image => "/image/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}"}
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
     else
-        if image.format == 'JPEG' then
-            content_type 'image/jpg'
-        elsif image.format == 'GIF' then
-            content_type 'image/gif'
-        elsif image.format == 'PNG' then
-            content_type 'image/png'
-        else
-            halt 500
-        end
-        expires 259200, :public
-        image.to_blob
+        halt 500
     end
+    expires 259200, :public
+    image.to_blob
+end
+
+get '/tiqav/v1/*/*', :agent => /^Twitterbot\// do |command, id|
+    begin
+        command_hash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+
+    begin
+        unless id.index('.') then
+            uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
+            tiqav_hash = JSON.parse(res.body)
+            uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
+        else
+            uri = URI.parse("http://img.tiqav.com/#{id}")
+        end
+    rescue Exception => e
+        logger.error e.to_s
+        halt 500, 'url error'
+    end
+
+    erb :image, :locals => {:image => "/bot/v1?command=#{URI.encode(command)}&url=#{URI.encode(uri.to_s)}"}
 end
 
 get '/tiqav/v1/*/*' do |command, id|
@@ -523,28 +572,88 @@ get '/tiqav/v1/*/*' do |command, id|
 
     unless use_cache then
         editImage(command_hash, image)
-        saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
         begin
             cache.put(img_url, Base64.urlsafe_encode64(image.to_blob))
         rescue Exception => e
             logger.warn e.to_s
         end
     end
+    saveRecentUrl("/image/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
 
     headers['Access-Control-Allow-Origin'] = '*'
-    if /^Twitterbot\// =~ request.user_agent
-        erb :image, :locals => {:image => "/image/v1?command=#{URI.encode(command)}&url=#{URI.encode(uri.to_s)}"}
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
     else
-        if image.format == 'JPEG' then
-            content_type 'image/jpg'
-        elsif image.format == 'GIF' then
-            content_type 'image/gif'
-        elsif image.format == 'PNG' then
-            content_type 'image/png'
-        else
-            halt 500
-        end
-        expires 259200, :public
-        image.to_blob
+        halt 500
     end
+    expires 259200, :public
+    image.to_blob
+end
+
+get '/bot/v1', :agent => /^Twitterbot\// do
+    command = params['command']
+    begin
+        command_hash = JSON.parse(command)
+    rescue Exception => e
+        logger.error e.to_s
+        halt 400, 'command error'
+    end
+    url = params['url']
+    unless url then
+        halt 400, 'no url parameter'
+    end
+
+    image = nil
+    begin
+        ironcache = IronCache::Client.new
+        cache = ironcache.cache('image_cache')
+        item = cache.get(Base64.urlsafe_encode64(command + '*' + url))
+        if item then
+            image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
+        end
+    rescue Exception => e
+        logger.warn e.to_s
+    end
+
+    unless image then
+        begin
+            buildUrl(url)
+            uri = URI.parse(url)
+            is_html = false
+            if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
+                is_html = true
+            end
+            res = Net::HTTP.start(uri.host, uri.port) {|http|
+                http.get(uri.path)
+            }
+            if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
+                uri = URI.parse($1)
+                res = Net::HTTP.start(uri.host, uri.port) {|http|
+                    http.get(uri.path)
+                }
+            end
+            image = Magick::Image.from_blob(res.body).shift
+        rescue Exception => e
+            logger.info url
+            logger.error e.to_s
+            halt 500, 'url error'
+        end
+        editImage(command_hash, image)
+    end
+
+    if image.format == 'JPEG' then
+        content_type 'image/jpg'
+    elsif image.format == 'GIF' then
+        content_type 'image/gif'
+    elsif image.format == 'PNG' then
+        content_type 'image/png'
+    else
+        halt 500
+    end
+    expires 259200, :public
+    image.to_blob
 end
