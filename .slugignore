@@ -1,5 +1,5 @@
 README.md
-LICENSE.gitignore
+LICENSE
 fonts/LICENSE
 fonts/LICENSE.en
 fonts/LICENSE_J.mplus
@@ -7,6 +7,7 @@ fonts/LICENSE_E.mplus
 fonts/README.sazanami
 
 .travis.yml
+Rakefile
 
 KomenukaCanvas.js
 TextEx.js
