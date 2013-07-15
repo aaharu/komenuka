@@ -32,3 +32,6 @@ Disallow: /tiqav/
 User-agent: Yandex
 Disallow: /image/
 Disallow: /tiqav/
+
+User-agent: *
+Disallow: /bot/
