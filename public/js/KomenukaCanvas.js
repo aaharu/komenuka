@@ -88,7 +88,7 @@ var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker
                         y1 = args[i].y || 0;
                         size = args[i].size || "30";
                         color = args[i].color || "#000000";
-                        text = new createjs.TextEx(t, size + "px Arial", color);
+                        text = new createjs.Text(t, size + "px Arial", color);
                         text.x = x1;
                         text.y = y1;
                         text.blockProgression = "rl";
@@ -219,7 +219,7 @@ var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker
                 if (jqStr.val()) {
                     var size = jqSize.val(),
                         color = "#" + $colorPicker2.val(),
-                        text = new createjs.TextEx(jqStr.val(), size + "px Arial", color);
+                        text = new createjs.Text(jqStr.val(), size + "px Arial", color);
                     text.x = mouseDownEvent.stageX|0;
                     text.y = mouseDownEvent.stageY|0;
                     text.alpha = 0.6;
