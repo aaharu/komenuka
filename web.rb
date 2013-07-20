@@ -80,6 +80,7 @@ def buildUrl(url)
         }
         "://#{words.join('.')}"
     }
+    return url
 end
 
 def editImage(command_hash, image)
@@ -264,7 +265,7 @@ get '/proxy' do
 
     begin
         url = params['url']
-        buildUrl(url)
+        url = buildUrl(url)
         is_html = false
         if /^http:\/\/tiqav\.com\/([a-zA-Z0-9]+)$/ =~ url
             uri = URI.parse("http://api.tiqav.com/images/#{Regexp.last_match(-1)}.json")
@@ -319,7 +320,7 @@ get '/image/v1', :agent => /^Twitterbot\// do
     end
 
     begin
-        buildUrl(url)
+        url = buildUrl(url)
     rescue Exception => e
         logger.info url
         logger.error e.to_s
@@ -360,7 +361,7 @@ get '/image/v1' do
 
     unless image then
         begin
-            buildUrl(url)
+            url = buildUrl(url)
             uri = URI.parse(url)
             is_html = false
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
@@ -416,7 +417,7 @@ get '/image/v1/*/*', :agent => /^Twitterbot\// do |command, url|
     end
 
     begin
-        buildUrl(url)
+        url = buildUrl(url)
     rescue Exception => e
         logger.info url
         logger.error e.to_s
@@ -451,7 +452,7 @@ get '/image/v1/*/*' do |command, url|
 
     unless image then
         begin
-            buildUrl(url)
+            url = buildUrl(url)
             uri = URI.parse(url)
             is_html = false
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
@@ -621,7 +622,7 @@ get '/bot/v1', :agent => /^Twitterbot\// do
 
     unless image then
         begin
-            buildUrl(url)
+            url = buildUrl(url)
             uri = URI.parse(url)
             is_html = false
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
