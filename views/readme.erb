@@ -11,6 +11,8 @@
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
         <header class="navbar">
             <div class="navbar-inner">
                 <a class="brand" href="/">komenuka</a>
@@ -118,10 +120,7 @@
                 </dl>
             </section>
         </main>
-        <footer>
-            using <a href="http://ipafont.ipa.go.jp/">IPA Font</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a>, <a href="http://jscolor.com/">jscolor</a>, <a href="http://jonobr1.github.io/stalactite/">stalactite</a>, <a href="http://www.createjs.com/#!/EaselJS">EaselJS</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
-            <small>&#169; aaharu</small>
-        </footer>
+<%= footer %>
         <script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-40683203-1', 'herokuapp.com');ga('send', 'pageview');</script>
     </body>
 </html>

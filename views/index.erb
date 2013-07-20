@@ -29,11 +29,7 @@
             <img src="<%= item.pre %><%= Base64.encode64(item.img.to_blob) %>" width="300" height="300" class="img-polaroid" onclick="location.href='<%= item.url %>'" />
 <% end %>
         </div>
-        <footer>
-            <div class="fb-like" data-href="http://komenuka.herokuapp.com/" data-send="false" data-width="450" data-show-faces="true"></div><br />
-            using <a href="http://ipafont.ipa.go.jp/">IPA Font</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a>, <a href="http://jscolor.com/">jscolor</a>, <a href="http://jonobr1.github.io/stalactite/">stalactite</a>, <a href="http://www.createjs.com/#!/EaselJS">EaselJS</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
-            <small>&#169; aaharu</small>
-        </footer>
+<%= footer %>
         <!--[if lt IE 9]>
             <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
         <![endif]-->

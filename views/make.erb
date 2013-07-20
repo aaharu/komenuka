@@ -11,6 +11,8 @@
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
         <header class="navbar">
             <div class="navbar-inner">
                 <a class="brand" href="/">komenuka</a>
@@ -59,10 +61,7 @@
                 <dd><img id="komenukaImg" src="http://placehold.jp/150x50.png" /></dd>
             </dl>
         </main>
-        <footer>
-            using <a href="http://ipafont.ipa.go.jp/">IPA Font</a>, <a href="http://twitter.github.io/bootstrap/">Twitter Bootstrap</a>, <a href="http://jscolor.com/">jscolor</a>, <a href="http://jonobr1.github.io/stalactite/">stalactite</a>, <a href="http://www.createjs.com/#!/EaselJS">EaselJS</a> and <a href="https://www.heroku.com/">Heroku</a>.<br />
-            <small>&#169; aaharu</small>
-        </footer>
+<%= footer %>
         <!--[if lt IE 9]>
             <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
         <![endif]-->
