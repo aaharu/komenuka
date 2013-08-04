@@ -399,9 +399,9 @@ get '/image/v1' do
     if image.format == 'JPEG' then
         content_type 'image/jpg'
     elsif image.format == 'GIF' then
-        content_type 'image/gif'
+        content_type :gif
     elsif image.format == 'PNG' then
-        content_type 'image/png'
+        content_type :png
     else
         halt 500
     end

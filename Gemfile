@@ -1,5 +1,6 @@
 source 'http://rubygems.org'
 ruby '2.0.0'
+gem 'thin', '~> 1.5'
 gem 'sinatra', '~> 1.4'
 gem 'rmagick', '~> 2.13', :require => 'RMagick'
 gem 'dalli', '~> 2.6'
