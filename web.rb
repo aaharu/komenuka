@@ -298,6 +298,7 @@ get '/proxy' do
     content_type res.content_type
     #同ドメインになるのでつけなくてもいいけど
     headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Headers'] = 'X-Requested-With'
     res.body
 end
 
@@ -306,6 +307,7 @@ options '/proxy' do
         halt 400, 'bad parameter'
     end
     headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Headers'] = 'X-Requested-With'
 end
 
 get '/image/v1', :agent => /^Twitterbot\// do
