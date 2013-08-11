@@ -301,6 +301,13 @@ get '/proxy' do
     res.body
 end
 
+options '/proxy' do
+    unless params.has_key?('url')
+        halt 400, 'bad parameter'
+    end
+    headers['Access-Control-Allow-Origin'] = '*'
+end
+
 get '/image/v1', :agent => /^Twitterbot\// do
     command = params['command']
     begin
