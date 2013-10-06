@@ -122,13 +122,13 @@
                     ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i);
                     if (ptn !== null) {
                         // あとでちゃんとかく
-                        $.get("/proxy?url=http://api.tiqav.com/images/" + ptn[1] + ".json", function(data) {
+                        $.get("//allow-any-origin.appspot.com/http://api.tiqav.com/images/" + ptn[1] + ".json", function(data) {
                             url = "http://img.tiqav.com/" + data.id + "." + data.ext;
                             $imageUrlText.val(url);
-                            img.src = "/proxy?url=" + encodeURI(url);
+                            img.src = "//allow-any-origin.appspot.com/" + encodeURI(url);
                         });
                     } else {
-                        img.src = "/proxy?url=" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
+                        img.src = "//allow-any-origin.appspot.com/" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
                     }
 
                     $rectangleBtn.click(function() {

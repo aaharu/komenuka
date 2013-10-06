@@ -8,6 +8,7 @@ require 'uri'
 require 'net/http'
 require 'json'
 require 'dalli'
+require 'memcachier'
 require 'set'
 require 'rack/contrib'
 require 'punycode'
@@ -22,6 +23,9 @@ SMALL_CHARACTERS = ["\u3041", "\u3043", "\u3045", "\u3047", "\u3049", "\u3083", 
 PUNCTUATION_CHARACTERS = ["\u3001", "\uFF0C", "\u3002", "\uFF0E"]
 PARENTHESIS_CHARACTERS = ["\u3009", "\u300B", "\u300D", "\u300F", "\u3011", "\u3015", "\u3017", "\u3019", "\uFF09", "\uFF5D", "\uFF60", "\u3008", "\u300A", "\u300C", "\u300E", "\u3010", "\u3014", "\u3016", "\u3018", "\uFF08", "\uFF5B", "\uFF5F", "\uFF1C", "\uFF1E", "\u201C", "\u201D", "\u2018", "\u2019"]
 ASCII_CHARACTERS = ['"', "'", '-', '/', ':', ';', '<', '=', '>', '[', ']', '\\', ']', '{', '|', '}', '(', ')']
+ENV['MEMCACHE_SERVERS'] = ENV['MEMCACHIER_SERVERS']
+ENV['MEMCACHE_USERNAME'] = ENV['MEMCACHIER_USERNAME']
+ENV['MEMCACHE_PASSWORD'] = ENV['MEMCACHIER_PASSWORD']
 
 class RecentData
     attr_reader :url, :pre, :img
@@ -210,7 +214,7 @@ def saveRecentUrl(url, image)
         end
         if prefix then
             dc = Dalli::Client.new(
-                ENV['MEMCACHIER_SERVERS'],
+                ENV['MEMCACHIER_SERVERS'].split(','),
                 {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
             )
             image_set = dc.get('set')
@@ -234,7 +238,7 @@ end
 get '/' do
     begin
         dc = Dalli::Client.new(
-            ENV['MEMCACHIER_SERVERS'],
+            ENV['MEMCACHIER_SERVERS'].split(','),
             {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
         )
         image_set = dc.get('set')
