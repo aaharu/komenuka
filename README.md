@@ -2,6 +2,7 @@ komenuka
 ========
 
 [![Build Status](https://travis-ci.org/aaharu/komenuka.png?branch=master)](https://travis-ci.org/aaharu/komenuka)
+[![Dependency Status](https://gemnasium.com/aaharu/komenuka.png)](https://gemnasium.com/aaharu/komenuka)
 
 komenuka --URL for edited image.--
 

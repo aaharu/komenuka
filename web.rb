@@ -550,6 +550,7 @@ get '/tiqav/v1/*/*' do |command, id|
 
     use_cache = false
     img_url = nil
+    uri = nil
     begin
         ironcache = IronCache::Client.new
         cache = ironcache.cache('image_cache')
