@@ -7,7 +7,7 @@
         <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
         <link href="/css/bootstrap.min.css" rel="stylesheet" />
-        <link href="/css/komenuka.css?4" rel="stylesheet" />
+        <link href="/css/komenuka.css" rel="stylesheet" />
         <meta property="og:title" content="komenuka" />
         <meta property="og:site_name" content="komenuka" />
         <meta property="og:type" content="website" />
@@ -24,9 +24,15 @@
             <p class="lead">URL for edited image.</p>
         </header>
         <a href="/readme" id="readme">readme</a>
-        <div id="list">
-<% images.each do |item| %>
-            <img src="<%= item.pre %><%= Base64.encode64(item.img.to_blob) %>" width="300" height="300" class="img-polaroid" onclick="location.href='<%= item.url %>'" />
+        <div id="list" class="js-masonry" data-masonry-options='{"columnWidth": 30, "itemSelector": "img"}'>
+<% images.each_with_index do |item, index| %>
+<% if index % 2 == 0 %>
+            <img src="<%= item.pre %><%= Base64.encode64(item.img.to_blob) %>" class="img-polaroid" width="250" onclick="location.href='<%= item.url %>'" />
+<% elsif index % 3 == 0 %>
+            <img src="<%= item.pre %><%= Base64.encode64(item.img.to_blob) %>" class="img-polaroid" width="300" onclick="location.href='<%= item.url %>'" />
+<% else %>
+            <img src="<%= item.pre %><%= Base64.encode64(item.img.to_blob) %>" class="img-polaroid" width="200" onclick="location.href='<%= item.url %>'" />
+<% end %>
 <% end %>
         </div>
 <%= footer %>
@@ -34,12 +40,9 @@
             <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
         <![endif]-->
         <!--[if gte IE 9]><!-->
-            <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.2.min.js"></script>
+            <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.3.min.js"></script>
         <!--<![endif]-->
-        <script src="/js/jquery.stalactite.min.js?2"></script>
-<% if images.size() > 0 %>
-        <script type="application/javascript">$(function(){$("#list").stalactite({offset:10})})</script>
-<% end %>
-        <script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-40683203-1', 'herokuapp.com');ga('send', 'pageview');</script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/masonry/3.1.1/masonry.pkgd.min.js"></script>
+<%= ga %>
     </body>
 </html>

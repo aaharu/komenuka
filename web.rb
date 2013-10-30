@@ -250,17 +250,17 @@ get '/' do
     end
 
     expires 60, :public, :must_revalidate
-    erb :index, :locals => {:images => image_set, :footer => erb(:footer)}
+    erb :index, :locals => {:images => image_set, :footer => erb(:footer), :ga => erb(:ga)}
 end
 
 get '/readme' do
     expires 100, :public, :must_revalidate
-    erb :readme, :locals => {:footer => erb(:footer)}
+    erb :readme, :locals => {:footer => erb(:footer), :ga => erb(:ga)}
 end
 
 get '/make' do
     expires 100, :public, :must_revalidate
-    erb :make, :locals => {:footer => erb(:footer)}
+    erb :make, :locals => {:footer => erb(:footer), :ga => erb(:ga)}
 end
 
 get '/proxy' do

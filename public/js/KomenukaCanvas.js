@@ -1,6 +1,6 @@
-/**!
+/*!
  * KomenukaCanvas
- * @license Copyright (c) 2013 aaharu
+ * Copyright (c) 2013 aaharu
  * https://raw.github.com/aaharu/komenuka/master/LICENSE
  */
 var KomenukaCanvas = function (stage, $out, $outUrl, $colorPicker1, $colorPicker2, $imageUrlText) {

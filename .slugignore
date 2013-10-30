@@ -8,6 +8,7 @@ fonts/README.sazanami
 
 .travis.yml
 Rakefile
+bin/
 
 KomenukaCanvas.js
 TextEx.js

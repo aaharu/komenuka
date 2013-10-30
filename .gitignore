@@ -55,3 +55,6 @@ iron.json
 
 # Heroku config
 .env
+
+
+.sass-cache/
