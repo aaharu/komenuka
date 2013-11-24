@@ -95,10 +95,10 @@ komenukaEditor =
                     $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(urlPath))
             )
 
-if location.hash? or location.hash is ""
-    komenukaEditor.initEditor()
+if location.hash is ""
+    komenukaEditor.container.html(T.editor_search.render())
 else
-    komenukaEditor.container.html(T.editor_edit.render())
+    komenukaEditor.initEditor()
 
 app = angular.module("app", [])
 app.controller("EditorController", ["$scope", ($scope) ->

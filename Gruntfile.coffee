@@ -8,7 +8,6 @@ module.exports = (grunt) ->
                 preserveComments: "some"
             compile:
                 files:
-                    "public/js/KomenukaCanvas.min.js": ["src/js/KomenukaCanvas.js"]
                     "public/js/TextEx.min.js": ["src/js/TextEx.js"]
                     "public/js/top.min.js": ["src/coffee/top.js"]
                     "public/js/editor.min.js": ["src/coffee/editor.js"]
@@ -16,7 +15,7 @@ module.exports = (grunt) ->
                     "public/template/recent_images.js": ["src/template/recent_images.js"]
                     "public/template/editor.js": ["src/template/editor.js"]
         jshint:
-            all: ["src/js/KomenukaCanvas.js", "src/js/TextEx.js"]
+            all: ["src/js/TextEx.js"]
         stylus:
             compile:
                 files:

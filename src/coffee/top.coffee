@@ -5,8 +5,7 @@ $(() ->
         url: "/api/images/recent"
         dataType: "json"
     ).done((data, textStatus, jqXHR) ->
-        json = JSON.parse(data)
-        template = T.recent_images.render(json)
+        template = T.recent_images.render({images: data})
         $("#list").append(template)
     ).fail((jqXHR, textStatus, errorThrown) -> console.log(errorThrown))
 )
