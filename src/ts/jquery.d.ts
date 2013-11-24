@@ -18,6 +18,11 @@ and limitations under the License.
 /*
     Interface for the AJAX setting that will configure the AJAX request
 */
+/*
+   my changes:
+       bool -> boolean
+       add ...extraParameters to trigger
+*/
 interface JQueryAjaxSettings {
     accepts?: any;
     async?: boolean;
