@@ -1,170 +1,50 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" ng-app="app">
     <head>
         <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>komenuka</title>
         <meta content="komenuka editor" name="description" />
         <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
-        <link href="/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" />
         <link href="/css/komenuka.css" rel="stylesheet" />
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/hogan.js/2.0.0/hogan.js"></script>
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
         <div id="fb-root"></div>
         <script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
-        <header class="navbar">
-            <div class="navbar-inner">
-                <a class="brand" href="/">komenuka</a>
-                <ul class="nav">
+        <header class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">komenuka</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
                     <li><a href="/readme">readme</a></li>
-                    <li class="active"><a href="#">editor</a></li>
+                    <li class="active"><a href="/make">editor</a></li>
                 </ul>
             </div>
         </header>
-        <main role="main">
-            <h3>1. 編集する画像を読み込む</h3>
-            <form class="form-inline">
-                <input id="imageUrlText" type="text" placeholder="Image URL" class="input-large" />
-                <button id="imageUrlBtn" type="submit" class="btn btn-primary">読み込む</button>
-            </form>
-            <h3>2. 画像を編集する</h3>
-            <div class="row-fluid">
-                <div class="span2">
-                    <button id="undoBtn" class="btn" disabled="disabled">元に戻す</button>
-                    <hr />
-                    <button id="rectangleBtn" class="btn" disabled="disabled"><i class="icon-edit"></i>四角</button><br />
-                    <input id="colorPicker-r" class="color input-mini" />
-                    <button id="spuitBtn" class="btn">スポイト</button>
-                    <hr />
-                    <button id="annotateBtn" class="btn" disabled="disabled"><i class="icon-text-width"></i>横書き</button>
-                    <button id="tategakiBtn" class="btn" disabled="disabled"><i class="icon-text-height"></i>縦書き</button><br />
-                    <input id="colorPicker-w" class="color input-mini" value="000000" /><br />
-                    <div class="input-append">
-                        <input id="textSize" class="input-mini" type="text" value="30" disabled="disabled" />
-                        <span class="add-on">px</span>
-                    </div>
-                    <textarea id="drawText" class="span12" placeholder="描画テキスト" disabled="disabled"></textarea>
-                </div>
-                <div class="span10">
-                    <canvas id="canvas" width="0" height="0"></canvas>
-                </div>
-            </div>
-            <h3>3. 編集後の画像URLの画像を確認する</h3>
-            <textarea id="outjson" class="input-xxlarge" placeholder="Output JSON"></textarea><br />
-            <form class="form-inline">
-                <input id="komenukaUrlText" type="text" class="input-xxlarge" placeholder="Output URL" />
-                <button id="chkBtn" type="submit" class="btn">check</button>
-            </form>
-            <dl>
-                <dt>編集後画像</dt>
-                <dd><img id="komenukaImg" src="http://placehold.jp/150x50.png" /></dd>
-            </dl>
-        </main>
+        <main id="main" class="container" role="main" ng-controller="EditorController"></main>
 <%= footer %>
         <!--[if lt IE 9]>
+            <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
             <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.min.js"></script>
         <![endif]-->
         <!--[if gte IE 9]><!-->
             <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.2.min.js"></script>
         <!--<![endif]-->
-        <!--script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.0.0/knockout-min.js"></script-->
+        <script src="/template/editor.js"></script>
         <script src="/js/jscolor/jscolor.js"></script>
-        <script src="//code.createjs.com/easeljs-0.6.1.min.js"></script>
+        <script src="http://code.createjs.com/easeljs-0.6.1.min.js"></script>
+        <!--script src="http://code.createjs.com/easeljs-0.7.0.min.js"></script-->
         <script src="/js/TextEx.min.js?5"></script>
-        <script src="/js/KomenukaCanvas.min.js?5"></script>
-        <script type="application/javascript">
-        $(function() {
-            "use strict";
-            var $outjson = $("#outjson"),
-                $rectangleBtn = $("#rectangleBtn"),
-                $annotateBtn = $("#annotateBtn"),
-                $tategakiBtn = $("#tategakiBtn"),
-                $undoBtn = $("#undoBtn"),
-                $drawText = $("#drawText"),
-                $textSize = $("#textSize"),
-                $imageUrlText = $("#imageUrlText"),
-                $komenukaUrlText = $("#komenukaUrlText"),
-                komenuka = new KomenukaCanvas(new createjs.Stage("canvas"), $outjson, $komenukaUrlText, $("#colorPicker-r"), $("#colorPicker-w"), $imageUrlText);
-
-            $outjson.change(function() {
-                var url = $imageUrlText.val(), ptn;
-                if ((/^http:\/\//i).test(url)) {
-                    url = url.substring(7);
-                    ptn = url.match(/^(img\.)?tiqav\.com\/([\w\d]+(\.jpg|\.gif|\.png)?)$/i);
-                }
-                if (ptn === null || ptn === undefined) {
-                    $komenukaUrlText.val("http://komenuka.herokuapp.com/image/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(url));
-                } else {
-                    $komenukaUrlText.val("http://komenuka.herokuapp.com/tiqav/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(ptn[2]));
-                }
-            });
-
-            $("#imageUrlBtn").click(function() {
-                var url = $imageUrlText.val(), img, ptn;
-                $rectangleBtn.attr({"disabled": "disabled"});
-                $annotateBtn.attr({"disabled": "disabled"});
-                $tategakiBtn.attr({"disabled": "disabled"});
-                $undoBtn.attr({"disabled": "disabled"});
-                $drawText.attr({"disabled": "disabled"});
-                $textSize.attr({"disabled": "disabled"});
-
-                if (url) {
-                    img = new Image();
-                    img.crossOrigin = "Anonymous";
-                    img.onload = function() {
-                        komenuka.init(new createjs.Bitmap(img));
-                        $outjson.val("");
-                        $rectangleBtn.removeAttr("disabled");
-                        $annotateBtn.removeAttr("disabled");
-                        $tategakiBtn.removeAttr("disabled");
-                        $undoBtn.removeAttr("disabled");
-                    }
-                    ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i);
-                    if (ptn !== null) {
-                        // あとでちゃんとかく
-                        $.get("//allow-any-origin.appspot.com/http://api.tiqav.com/images/" + ptn[1] + ".json", function(data) {
-                            url = "http://img.tiqav.com/" + data.id + "." + data.ext;
-                            $imageUrlText.val(url);
-                            img.src = "//allow-any-origin.appspot.com/" + encodeURI(url);
-                        });
-                    } else {
-                        img.src = "//allow-any-origin.appspot.com/" + encodeURI(url); // Access-Control-Allow-Originで許可されていればproxyいらない
-                    }
-
-                    $rectangleBtn.click(function() {
-                        $drawText.attr({"disabled": "disabled"});
-                        $textSize.attr({"disabled": "disabled"});
-                        komenuka.publishRectangleEvents();
-                    });
-                    $annotateBtn.click(function() {
-                        $drawText.removeAttr("disabled");
-                        $textSize.removeAttr("disabled");
-                        komenuka.publishAnnotateEvents($drawText, $textSize);
-                    });
-                    $tategakiBtn.click(function() {
-                        $drawText.removeAttr("disabled");
-                        $textSize.removeAttr("disabled");
-                        komenuka.publishTategakiEvents($drawText, $textSize);
-                    });
-                    $undoBtn.click(function() {
-                        komenuka.undo();
-                    });
-                    $("#spuitBtn").click(function() {
-                        komenuka.publishSpuitEvents();
-                    });
-                } else {
-                    alert("please input");
-                }
-                return false;
-            });
-
-            $("#chkBtn").click(function() {
-                document.getElementById("komenukaImg").src = $komenukaUrlText.val();
-                return false;
-            });
-        });
-        </script>
+        <script src="/js/komenuka.min.js"></script>
+        <script src="/js/editor.min.js"></script>
 <%= ga %>
     </body>
 </html>

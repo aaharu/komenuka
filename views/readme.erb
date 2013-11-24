@@ -2,33 +2,37 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>komenuka</title>
         <meta content="komenukaの使い方" name="description" />
         <meta content="komenuka,コメント画像" name="keywords" />
         <meta name="author" content="aaharu" />
-        <link href="/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" />
         <link href="/css/komenuka.css" rel="stylesheet" />
         <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
         <div id="fb-root"></div>
         <script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
-        <header class="navbar">
-            <div class="navbar-inner">
-                <a class="brand" href="/">komenuka</a>
-                <ul class="nav">
+        <header class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">komenuka</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
                     <li class="active"><a href="/readme">readme</a></li>
                     <li><a href="/make">editor</a></li>
                 </ul>
             </div>
         </header>
-        <main role="main">
+        <main class="container" role="main">
             <section>
                 <h2>introduction</h2>
                 <p>Web上にある画像を編集して、画像を返します。<br />URLにコマンドを記入するだけでコメント付きの画像を生成することが可能です。</p>
                 <h3>example</h3>
                 <ul class="thumbnails">
-                    <li class="span5">
+                    <li class="col-md-5">
                         <div class="thumbnail">
                             <div class="caption text-center">
                                 <h4>before</h4>
@@ -39,7 +43,7 @@
                             </div>
                         </div>
                     </li>
-                    <li class="span5">
+                    <li class="col-md-5">
                         <div class="thumbnail">
                             <div class="caption text-center">
                                 <h4>after</h4>
@@ -121,6 +125,10 @@
             </section>
         </main>
 <%= footer %>
+        <!--[if lt IE 9]>
+            <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
 <%= ga %>
     </body>
 </html>

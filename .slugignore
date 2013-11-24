@@ -8,8 +8,6 @@ fonts/README.sazanami
 
 .travis.yml
 Rakefile
-bin/
-
-KomenukaCanvas.js
-TextEx.js
-jquery.stalactite.js
+package.json
+Gruntfile.coffee
+src/

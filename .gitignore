@@ -56,5 +56,10 @@ iron.json
 # Heroku config
 .env
 
-
+node_modules/
 .sass-cache/
+tscommand.tmp.txt
+
+src/coffee/*.js
+src/template/*.js
+src/ts/*.js
