@@ -6,11 +6,11 @@ require 'punycode'
 
 module Komenuka
     module Util
-        def self.buildUrl(url)
+        def self.buildUrl url
             unless /^http/ =~ url
                 url = 'http://' + url
             else
-                unless url.index('://') then
+                unless url.index('://')
                     url.sub!(':/', '://')
                 end
             end

@@ -16,17 +16,11 @@ komenukaEditor =
 
         $outjson.change(() ->
             url = location.hash.substring(1)
-            if /^http:\/\//i.test(url)
-                url = url.substring(7)
-                ptn = url.match(/^(img\.)?tiqav\.com\/([\w\d]+(\.jpe?g|\.gif|\.png)?)$/i)
-            if ptn?
-                $komenukaUrlText.val("http://" + location.host + "/tiqav/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(ptn[2]))
-            else
-                $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(url))
+            $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(url))
         )
 
         $("#chkBtn").click(() ->
-            document.getElementById("komenukaImg").src = $komenukaUrlText.val()
+            document.getElementById("komenukaImg").src = $komenukaUrlText.val().replace("page", "image")
             return false
         )
 
@@ -53,46 +47,47 @@ komenukaEditor =
                 # あとでちゃんとかく
                 $.get("//allow-any-origin.appspot.com/http://api.tiqav.com/images/" + ptn[1] + ".json", (data) ->
                     tiqavUrl = "http://img.tiqav.com/" + data.id + "." + data.ext
-                    $imageUrlText.val(tiqavUrl)
+                    location.hash = tiqavUrl
+                    url = tiqavUrl
                     img.src = "//allow-any-origin.appspot.com/" + tiqavUrl
                 )
             else
                 # Access-Control-Allow-Originで許可されていればproxyいらない
                 img.src = "//allow-any-origin.appspot.com/" + url
+
             $rectangleBtn.click(() ->
                 $drawText.attr({disabled: "disabled"})
                 $textSize.attr({disabled: "disabled"})
                 komenukaCanvas.publishRectangleEvents()
             )
+
             $annotateBtn.click(() ->
                 $drawText.removeAttr("disabled")
                 $textSize.removeAttr("disabled")
                 komenukaCanvas.publishAnnotateEvents($drawText, $textSize)
             )
+
             $tategakiBtn.click(() ->
                 $drawText.removeAttr("disabled")
                 $textSize.removeAttr("disabled")
                 komenukaCanvas.publishTategakiEvents($drawText, $textSize)
             )
+
             $undoBtn.click(() ->
                 komenukaCanvas.undo()
             )
+
             $("#spuitBtn").click(() ->
                 komenukaCanvas.publishSpuitEvents()
             )
+
             $("#canvas").on("komenuka:update", (event, obj) ->
                 if obj is undefined or Object.keys(obj).length is 0
                     $outjson.val("")
                     $komenukaUrlText.val("")
                     return
                 $outjson.val(JSON.stringify(obj))
-                if /^http:\/\//i.test(url)
-                    urlPath = url.substring(7)
-                    ptn = urlPath.match(/^(img\.)?tiqav\.com\/([\w\d]+(\.jpe?g|\.gif|\.png)?)$/i)
-                if ptn?
-                    $komenukaUrlText.val("http://" + location.host + "/tiqav/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(ptn[2]))
-                else
-                    $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(urlPath))
+                $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url))
             )
 
 if location.hash is ""

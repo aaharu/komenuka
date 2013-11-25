@@ -42,15 +42,30 @@ get '/api/images/recent' do
         logger.warn e.to_s
     end
     image_set = Set.new unless image_set
+    hash = {:images => image_set.to_a}
 
     expires 100, :public, :must_revalidate
-    json image_set.to_a
+    json hash
+end
+
+delete '/api/image' do
+    Komenuka::RecentImages.deleteRecentImage(params['url'])
+    hash = {:result => 'OK'}
+
+    json hash
 end
 
 get '/page/v1' do
     command = params['command']
     url = params['url']
-    erb :image, :locals => {:image_path => "/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}", :ga => erb(:ga)}
+    locals = {:image_path => "/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", :origin => Komenuka::Util.buildUrl(url), :ga => erb(:ga)}
+    uri = URI.parse(url)
+    if /^(img\.)?tiqav\.com$/ =~ uri.host
+        locals[:tiqav_path] = "/v1/#{URI.encode(command, /[^\w\d]/)}#{URI.encode(uri.path)}"
+    end
+
+    expires 300, :public, :must_revalidate
+    erb :image, :locals => locals
 end
 
 get '/image/v1' do
@@ -141,7 +156,14 @@ get '/image/v1' do
 end
 
 get '/page/v1/*/*' do |command, url|
-    erb :image, :locals => {:image_path => "/v1?command=#{URI.encode(command)}&url=#{URI.encode(url)}", :ga => erb(:ga)}
+    locals = {:image_path => "/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", :origin => Komenuka::Util.buildUrl(url), :ga => erb(:ga)}
+    uri = URI.parse(url)
+    if /^(img\.)?tiqav\.com$/ =~ uri.host
+        locals[:tiqav_path] = "/v1/#{URI.encode(command, /[^\w\d]/)}#{URI.encode(uri.path)}"
+    end
+
+    expires 300, :public, :must_revalidate
+    erb :image, :locals => locals
 end
 
 get '/image/v1/*/*' do |command, url|
