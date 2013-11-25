@@ -134,11 +134,12 @@ get '/image/v1' do
         rescue Exception => e
             logger.warn e.to_s
         end
-    end
-    begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-    rescue Exception => e
-        logger.warn e.to_s
+
+        begin
+            Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
+        rescue Exception => e
+            logger.warn e.to_s
+        end
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
@@ -226,11 +227,12 @@ get '/image/v1/*/*' do |command, url|
         rescue Exception => e
             logger.warn e.to_s
         end
-    end
-    begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-    rescue Exception => e
-        logger.warn e.to_s
+
+        begin
+            Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
+        rescue Exception => e
+            logger.warn e.to_s
+        end
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
@@ -305,11 +307,14 @@ get '/tiqav/v1/*/*' do |command, id|
         rescue Exception => e
             logger.warn e.to_s
         end
-    end
-    begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}")
-    rescue Exception => e
-        logger.warn e.to_s
+
+        begin
+            if uri
+                Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}")
+            end
+        rescue Exception => e
+            logger.warn e.to_s
+        end
     end
 
     headers['Access-Control-Allow-Origin'] = '*'
