@@ -136,7 +136,7 @@ get '/image/v1' do
         end
     end
     begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
     rescue Exception => e
         logger.warn e.to_s
     end
@@ -228,7 +228,7 @@ get '/image/v1/*/*' do |command, url|
         end
     end
     begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}", image)
+        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
     rescue Exception => e
         logger.warn e.to_s
     end
@@ -307,7 +307,7 @@ get '/tiqav/v1/*/*' do |command, id|
         end
     end
     begin
-        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}", image)
+        Komenuka::RecentImages.saveRecentUrl("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}")
     rescue Exception => e
         logger.warn e.to_s
     end

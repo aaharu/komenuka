@@ -3,16 +3,13 @@
 # Copyright (c) 2013 aaharu
 # https://raw.github.com/aaharu/komenuka/master/LICENSE
 require 'json'
-require 'base64'
 
 module Komenuka
     class RecentData
-        attr_reader :url, :pre, :img
+        attr_reader :url
 
-        def initialize(url, prefix, image)
+        def initialize(url)
             @url = url
-            @pre = prefix
-            @img = image
         end
 
         def hash
@@ -24,7 +21,7 @@ module Komenuka
         end
 
         def to_json(*a)
-            {:url => @url, :type => @pre, :data => Base64.strict_encode64(@img.to_blob)}.to_json(*a)
+            {:url => @url, :image => @url.sub(/^\/page\//, '/image/')}.to_json(*a)
         end
     end
 end
