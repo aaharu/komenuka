@@ -4,32 +4,33 @@
  * https://raw.github.com/aaharu/komenuka/master/LICENSE
  */
 
-/// <reference path="jquery.d.ts" />
+/// <reference path="../../submodule/DefinitelyTyped/jquery/jquery.d.ts" />
+/// <reference path="../../submodule/DefinitelyTyped/easeljs/easeljs.d.ts" />
 
 module komenuka {
     export class Canvas {
-        private _stage: any;
+        private _stage: createjs.Stage;
         private _$colorPicker1: JQuery;
         private _$colorPicker2: JQuery;
-        private _shape: any;
-        private _overlay: any;
+        private _shape: createjs.Shape;
+        private _overlay: createjs.Shape;
         private _jsonObj: Object;
-        private _image: any;
+        private _image: createjs.Bitmap;
         private _jsonObjHistory: Object[];
 
-        constructor(stage: any, $colorPicker1: JQuery, $colorPicker2: JQuery) {
+        constructor(stage: createjs.Stage, $colorPicker1: JQuery, $colorPicker2: JQuery) {
             this._stage = stage;
             this._$colorPicker1 = $colorPicker1;
             this._$colorPicker2 = $colorPicker2;
         }
 
-        public init(bmp: any) {
+        public init(bmp: createjs.Bitmap) {
             this._image = bmp;
             this._stage.removeAllEventListeners();
             this._stage.canvas.width = bmp.image.width;
             this._stage.canvas.height = bmp.image.height;
             this.clear();
-            this._overlay = new (<any> window).createjs.Shape();
+            this._overlay = new createjs.Shape();
             this._overlay.alpha = 0.7;
             this._stage.addChild(this._overlay);
             this._stage.update();
@@ -39,15 +40,17 @@ module komenuka {
 
         public publishRectangleEvents() {
             this._stage.removeAllEventListeners();
-            this._stage.addEventListener("mousedown", (mouseDownEvent) => {
-                var startX = mouseDownEvent.stageX | 0, startY = mouseDownEvent.stageY | 0;
-                mouseDownEvent.addEventListener("mousemove", (mouseMoveEvent) => {
-                    var moveX = mouseMoveEvent.stageX | 0, moveY = mouseMoveEvent.stageY | 0;
+            this._stage.on("stagemousedown", (mouseDownEvent) => {
+                var startX = (<createjs.MouseEvent>mouseDownEvent).stageX | 0, startY = (<createjs.MouseEvent>mouseDownEvent).stageY | 0;
+                this._stage.on("stagemousemove", (mouseMoveEvent) => {
+                    var moveX = (<createjs.MouseEvent>mouseMoveEvent).stageX | 0, moveY = (<createjs.MouseEvent>mouseMoveEvent).stageY | 0;
                     this._overlay.graphics.c().f("#" + this._$colorPicker1.val()).r(startX, startY, moveX - startX, moveY - startY).ef();
                     this._stage.update();
                 });
-                mouseDownEvent.addEventListener("mouseup", (mouseUpEvent) => {
-                    var x1, x2, y1, y2, obj = {}, color = "#" + this._$colorPicker1.val(), upX = mouseUpEvent.stageX | 0, upY = mouseUpEvent.stageY | 0;
+                this._stage.on("stagemouseup", (mouseUpEvent) => {
+                    this._stage.removeAllEventListeners("stagemousemove");
+                    this._stage.removeAllEventListeners("stagemouseup");
+                    var x1, x2, y1, y2, obj = {}, color = "#" + this._$colorPicker1.val(), upX = (<createjs.MouseEvent>mouseUpEvent).stageX | 0, upY = (<createjs.MouseEvent>mouseUpEvent).stageY | 0;
                     this._overlay.graphics.c();
                     this._shape.graphics.f(color).r(startX, startY, upX - startX, upY - startY).ef();
                     this._stage.update();
@@ -88,23 +91,25 @@ module komenuka {
 
         public publishAnnotateEvents(jqStr, jqSize) {
             this._stage.removeAllEventListeners();
-            this._stage.addEventListener("mousedown", (mouseDownEvent) => {
+            this._stage.on("stagemousedown", (mouseDownEvent) => {
                 if (jqStr.val()) {
                     var size = jqSize.val(),
                         color = "#" + this._$colorPicker2.val(),
-                        text = new (<any> window).createjs.Text(jqStr.val(), size + "px Arial", color);
-                    text.x = mouseDownEvent.stageX | 0;
-                    text.y = mouseDownEvent.stageY | 0;
+                        text = new createjs.Text(jqStr.val(), size + "px Arial", color);
+                    text.x = (<createjs.MouseEvent>mouseDownEvent).stageX | 0;
+                    text.y = (<createjs.MouseEvent>mouseDownEvent).stageY | 0;
                     text.alpha = 0.6;
                     this._stage.addChild(text);
                     this._stage.update();
-                    mouseDownEvent.addEventListener("mousemove", (mouseMoveEvent) => {
-                        text.x = mouseMoveEvent.stageX | 0;
-                        text.y = mouseMoveEvent.stageY | 0;
+                    this._stage.on("stagemousemove", (mouseMoveEvent) => {
+                        text.x = (<createjs.MouseEvent>mouseMoveEvent).stageX | 0;
+                        text.y = (<createjs.MouseEvent>mouseMoveEvent).stageY | 0;
                         this._stage.update();
                     });
-                    mouseDownEvent.addEventListener("mouseup", (mouseUpEvent) => {
-                        var obj = { "text": text.text }, upX = mouseUpEvent.stageX | 0, upY = mouseUpEvent.stageY | 0;
+                    this._stage.on("stagemouseup", (mouseUpEvent) => {
+                        this._stage.removeAllEventListeners("stagemousemove");
+                        this._stage.removeAllEventListeners("stagemouseup");
+                        var obj = { "text": text.text }, upX = (<createjs.MouseEvent>mouseUpEvent).stageX | 0, upY = (<createjs.MouseEvent>mouseUpEvent).stageY | 0;
                         text.x = upX;
                         text.y = upY;
                         text.alpha = 1;
@@ -130,25 +135,27 @@ module komenuka {
 
         public publishTategakiEvents(jqStr, jqSize) {
             this._stage.removeAllEventListeners();
-            this._stage.addEventListener("mousedown", (mouseDownEvent) => {
+            this._stage.on("stagemousedown", (mouseDownEvent) => {
                 if (jqStr.val()) {
                     var size = jqSize.val(),
                         color = "#" + this._$colorPicker2.val(),
-                        text = new (<any> window).createjs.Text(jqStr.val(), size + "px Arial", color);
-                    text.x = mouseDownEvent.stageX | 0;
-                    text.y = mouseDownEvent.stageY | 0;
+                        text = new createjs.Text(jqStr.val(), size + "px Arial", color);
+                    text.x = (<createjs.MouseEvent>mouseDownEvent).stageX | 0;
+                    text.y = (<createjs.MouseEvent>mouseDownEvent).stageY | 0;
                     text.alpha = 0.6;
-                    text.blockProgression = "rl";
+                    (<any>text).blockProgression = "rl";
                     text.textAlign = "center";
                     this._stage.addChild(text);
                     this._stage.update();
-                    mouseDownEvent.addEventListener("mousemove", (mouseMoveEvent) => {
-                        text.x = mouseMoveEvent.stageX | 0;
-                        text.y = mouseMoveEvent.stageY | 0;
+                    this._stage.on("stagemousemove", (mouseMoveEvent) => {
+                        text.x = (<createjs.MouseEvent>mouseMoveEvent).stageX | 0;
+                        text.y = (<createjs.MouseEvent>mouseMoveEvent).stageY | 0;
                         this._stage.update();
                     });
-                    mouseDownEvent.addEventListener("mouseup", (mouseUpEvent) => {
-                        var obj = { "text": text.text }, upX = mouseUpEvent.stageX | 0, upY = mouseUpEvent.stageY | 0;
+                    this._stage.on("stagemouseup", (mouseUpEvent) => {
+                        this._stage.removeAllEventListeners("stagemousemove");
+                        this._stage.removeAllEventListeners("stagemouseup");
+                        var obj = { "text": text.text }, upX = (<createjs.MouseEvent>mouseUpEvent).stageX | 0, upY = (<createjs.MouseEvent>mouseUpEvent).stageY | 0;
                         text.x = upX;
                         text.y = upY;
                         text.alpha = 1;
@@ -174,8 +181,8 @@ module komenuka {
 
         public publishSpuitEvents() {
             this._stage.removeAllEventListeners();
-            this._stage.addEventListener("mousedown", (e) => {
-                var imgData = this._stage.canvas.getContext("2d").getImageData(e.stageX | 0, e.stageY | 0, 1, 1).data,
+            this._stage.on("stagemousedown", (e) => {
+                var imgData = this._stage.canvas.getContext("2d").getImageData((<createjs.MouseEvent>e).stageX | 0, (<createjs.MouseEvent>e).stageY | 0, 1, 1).data,
                     fontColor = "#000",
                     pointColor = (imgData[0].toString(16) + imgData[1].toString(16) + imgData[2].toString(16)).toUpperCase();
                 if (imgData[0] < 128 || imgData[1] < 128 || imgData[2] < 128) {
@@ -204,7 +211,7 @@ module komenuka {
         private clear() {
             this._stage.removeAllChildren();
             this._stage.addChild(this._image);
-            this._shape = new (<any> window).createjs.Shape();
+            this._shape = new createjs.Shape();
             this._stage.addChild(this._shape);
         }
 
@@ -228,8 +235,7 @@ module komenuka {
         }
 
         private updateHtml(obj) {
-            var event = new $.Event("komenuka:update");
-            $(this._stage.canvas).trigger(event, obj);
+            $(this._stage.canvas).trigger("komenuka:update", obj);
         }
 
         private drawFromJson(json) {
@@ -260,7 +266,7 @@ module komenuka {
                                 y1 = args[i].y || 0;
                                 size = args[i].size || "30";
                                 color = args[i].color || "#000000";
-                                text = new (<any> window).createjs.Text(t, size + "px Arial", color);
+                                text = new createjs.Text(t, size + "px Arial", color);
                                 text.x = x1;
                                 text.y = y1;
                                 this._stage.addChild(text);
@@ -274,7 +280,7 @@ module komenuka {
                                 y1 = args[i].y || 0;
                                 size = args[i].size || "30";
                                 color = args[i].color || "#000000";
-                                text = new (<any> window).createjs.Text(t, size + "px Arial", color);
+                                text = new createjs.Text(t, size + "px Arial", color);
                                 text.x = x1;
                                 text.y = y1;
                                 text.blockProgression = "rl";

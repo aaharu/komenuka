@@ -22,8 +22,10 @@ module Komenuka
                 return fontFamily
             when 'ipamp'
                 return fontFamily
+            when '07YasashisaAntique'
+                return fontFamily
             else
-                return 'ipag'
+                return '07YasashisaAntique'
             end
         end
 
@@ -59,7 +61,7 @@ module Komenuka
                             x = arg.fetch('x', 0).to_i
                             y = arg.fetch('y', 0).to_i
                             fontSize = arg.fetch('size', 30).to_i
-                            fontFamily = self.selectFont(arg.fetch('font', 'ipag'))
+                            fontFamily = self.selectFont(arg['font'])
                             lines = arg['text'].split
                             j = 1
                             for line in lines do
@@ -85,7 +87,7 @@ module Komenuka
                             x = arg.fetch('x', 0).to_i
                             y = arg.fetch('y', 0).to_i
                             fontSize = arg.fetch('size', 30).to_i
-                            fontFamily = self.selectFont(arg.fetch('font', 'ipag'))
+                            fontFamily = self.selectFont(arg['font'])
                             lines = arg['text'].split
                             j = 0
                             for line in lines do

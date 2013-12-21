@@ -43,8 +43,8 @@ module.exports = (grunt) ->
                 src: ["src/ts/komenuka.ts"]
                 outDir: "src/ts/"
                 options:
-                    comments: true
-                    sourcemap: false
+                    removeComments: false
+                    sourceMap: false
 
     grunt.loadNpmTasks "grunt-contrib-uglify"
     grunt.loadNpmTasks "grunt-contrib-jshint"

@@ -9,6 +9,7 @@ gem 'dalli', '~> 2.6'
 gem 'rack-contrib'
 gem 'punycode4r', '~> 0.2.0'
 gem 'iron_cache'
+gem 'newrelic_rpm'
 
 group :development, :test do
     gem 'rake'

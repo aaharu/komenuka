@@ -17,6 +17,7 @@ komenukaEditor =
         $outjson.change(() ->
             url = location.hash.substring(1)
             $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(url))
+            return
         )
 
         $("#chkBtn").click(() ->
@@ -36,12 +37,14 @@ komenukaEditor =
             img = new Image()
             img.crossOrigin = "Anonymous"
             img.onload = () ->
+                jscolor.init()
                 komenukaCanvas.init(new createjs.Bitmap(img))
                 $outjson.val("")
                 $rectangleBtn.removeAttr("disabled")
                 $annotateBtn.removeAttr("disabled")
                 $tategakiBtn.removeAttr("disabled")
                 $undoBtn.removeAttr("disabled")
+                return
             ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i)
             if ptn isnt null
                 # あとでちゃんとかく
@@ -50,6 +53,7 @@ komenukaEditor =
                     location.hash = tiqavUrl
                     url = tiqavUrl
                     img.src = "//allow-any-origin.appspot.com/" + tiqavUrl
+                    return
                 )
             else
                 # Access-Control-Allow-Originで許可されていればproxyいらない
@@ -59,26 +63,31 @@ komenukaEditor =
                 $drawText.attr({disabled: "disabled"})
                 $textSize.attr({disabled: "disabled"})
                 komenukaCanvas.publishRectangleEvents()
+                return
             )
 
             $annotateBtn.click(() ->
                 $drawText.removeAttr("disabled")
                 $textSize.removeAttr("disabled")
                 komenukaCanvas.publishAnnotateEvents($drawText, $textSize)
+                return
             )
 
             $tategakiBtn.click(() ->
                 $drawText.removeAttr("disabled")
                 $textSize.removeAttr("disabled")
                 komenukaCanvas.publishTategakiEvents($drawText, $textSize)
+                return
             )
 
             $undoBtn.click(() ->
                 komenukaCanvas.undo()
+                return
             )
 
             $("#spuitBtn").click(() ->
                 komenukaCanvas.publishSpuitEvents()
+                return
             )
 
             $("#canvas").on("komenuka:update", (event, obj) ->
@@ -88,6 +97,7 @@ komenukaEditor =
                     return
                 $outjson.val(JSON.stringify(obj))
                 $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url))
+                return
             )
 
 if location.hash is ""
@@ -100,4 +110,6 @@ app.controller("EditorController", ["$scope", ($scope) ->
     $scope.inputUrl = () ->
         location.hash = $scope.url
         komenukaEditor.initEditor()
+        return
+    return
 ])

@@ -1,11 +1,15 @@
 "use strict"
 $(() ->
-    $.ajax(
+    $.ajax("/api/images/recent", {
         type: "GET"
-        url: "/api/images/recent"
         dataType: "json"
-    ).done((data, textStatus, jqXHR) ->
+    }).done((data, textStatus, jqXHR) ->
         template = T.recent_images.render(data)
         $("#list").append(template)
-    ).fail((jqXHR, textStatus, errorThrown) -> console.log(errorThrown))
+        return
+    ).fail((jqXHR, textStatus, errorThrown) ->
+        console.log(errorThrown)
+        return
+    )
+    return
 )

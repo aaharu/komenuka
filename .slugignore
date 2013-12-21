@@ -1,13 +1,13 @@
 README.md
 LICENSE
-fonts/LICENSE
-fonts/LICENSE.en
-fonts/LICENSE_J.mplus
-fonts/LICENSE_E.mplus
-fonts/README.sazanami
+fonts/LICENSE_J
+fonts/LICENSE_E
+fonts/ReadMe_windows.txt
+fonts/Readme_IPAfont00303.txt
 
 .travis.yml
 Rakefile
 package.json
 Gruntfile.coffee
 src/
+/submodule/
