@@ -52,8 +52,8 @@ Session.vim
 
 # IronCache
 iron.json
-# NewRelic
-newrelic.yml
+# New Relic
+#newrelic.yml
 # Heroku config
 .env
 

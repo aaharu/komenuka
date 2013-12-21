@@ -33,18 +33,37 @@ komenukaEditor =
         $drawText.attr({disabled: "disabled"})
         $textSize.attr({disabled: "disabled"})
 
-        if url
-            img = new Image()
-            img.crossOrigin = "Anonymous"
-            img.onload = () ->
-                jscolor.init()
-                komenukaCanvas.init(new createjs.Bitmap(img))
-                $outjson.val("")
-                $rectangleBtn.removeAttr("disabled")
-                $annotateBtn.removeAttr("disabled")
-                $tategakiBtn.removeAttr("disabled")
-                $undoBtn.removeAttr("disabled")
-                return
+        if not url
+            alert("url error")
+            return
+        reg = url.match(/(https?):\/\/([^\/]+)(.*)/i)
+        if reg is null
+            alert("url error")
+            return
+        url = reg[1] + "://" + punycode.toASCII(reg[2]) + reg[3]
+        is_html = false
+        if /^(.+)\.jpg\.to$/i.test(reg[2]) or /^http:\/\/gazoreply\.jp\/\d+\/[a-z\.0-9]+$/i.test(url)
+            is_html = true
+
+        img = new Image()
+        img.crossOrigin = "Anonymous"
+        img.onload = () ->
+            jscolor.init()
+            komenukaCanvas.init(new createjs.Bitmap(img))
+            $outjson.val("")
+            $rectangleBtn.removeAttr("disabled")
+            $annotateBtn.removeAttr("disabled")
+            $tategakiBtn.removeAttr("disabled")
+            $undoBtn.removeAttr("disabled")
+            return
+        if is_html
+            # あとでちゃんとかく
+            $.get("//allow-any-origin.appspot.com/" + url, (data) ->
+                imgTag = data.match(/<img.+src="([^"]+)".+>/i)
+                if imgTag isnt null
+                    img.src = "//allow-any-origin.appspot.com/" + imgTag[1]
+            )
+        else
             ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i)
             if ptn isnt null
                 # あとでちゃんとかく
@@ -59,46 +78,47 @@ komenukaEditor =
                 # Access-Control-Allow-Originで許可されていればproxyいらない
                 img.src = "//allow-any-origin.appspot.com/" + url
 
-            $rectangleBtn.click(() ->
-                $drawText.attr({disabled: "disabled"})
-                $textSize.attr({disabled: "disabled"})
-                komenukaCanvas.publishRectangleEvents()
-                return
-            )
+        $rectangleBtn.click(() ->
+            $drawText.attr({disabled: "disabled"})
+            $textSize.attr({disabled: "disabled"})
+            komenukaCanvas.publishRectangleEvents()
+            return
+        )
 
-            $annotateBtn.click(() ->
-                $drawText.removeAttr("disabled")
-                $textSize.removeAttr("disabled")
-                komenukaCanvas.publishAnnotateEvents($drawText, $textSize)
-                return
-            )
+        $annotateBtn.click(() ->
+            $drawText.removeAttr("disabled")
+            $textSize.removeAttr("disabled")
+            komenukaCanvas.publishAnnotateEvents($drawText, $textSize)
+            return
+        )
 
-            $tategakiBtn.click(() ->
-                $drawText.removeAttr("disabled")
-                $textSize.removeAttr("disabled")
-                komenukaCanvas.publishTategakiEvents($drawText, $textSize)
-                return
-            )
+        $tategakiBtn.click(() ->
+            $drawText.removeAttr("disabled")
+            $textSize.removeAttr("disabled")
+            komenukaCanvas.publishTategakiEvents($drawText, $textSize)
+            return
+        )
 
-            $undoBtn.click(() ->
-                komenukaCanvas.undo()
-                return
-            )
+        $undoBtn.click(() ->
+            komenukaCanvas.undo()
+            return
+        )
 
-            $("#spuitBtn").click(() ->
-                komenukaCanvas.publishSpuitEvents()
-                return
-            )
+        $("#spuitBtn").click(() ->
+            komenukaCanvas.publishSpuitEvents()
+            return
+        )
 
-            $("#canvas").on("komenuka:update", (event, obj) ->
-                if obj is undefined or Object.keys(obj).length is 0
-                    $outjson.val("")
-                    $komenukaUrlText.val("")
-                    return
-                $outjson.val(JSON.stringify(obj))
-                $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url))
+        $("#canvas").on("komenuka:update", (event, obj) ->
+            if obj is undefined or Object.keys(obj).length is 0
+                $outjson.val("")
+                $komenukaUrlText.val("")
                 return
-            )
+            $outjson.val(JSON.stringify(obj))
+            $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url))
+            return
+        )
+        return
 
 if location.hash is ""
     komenukaEditor.container.html(T.editor_search.render())
