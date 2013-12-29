@@ -6,7 +6,7 @@ require 'RMagick'
 require 'sinatra'
 require 'sinatra/json'
 require 'uri'
-require 'net/http'
+require 'net/https'
 require 'json'
 require 'set'
 require 'rack/contrib'
@@ -108,14 +108,14 @@ get '/image/v1' do
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
                 is_html = true
             end
-            res = Net::HTTP.start(uri.host, uri.port) {|http|
-                http.get(uri.path)
-            }
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true if uri.scheme == 'https'
+            res = http.get(uri.path)
             if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
                 uri = URI.parse($1)
-                res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
-                }
+                http = Net::HTTP.new(uri.host, uri.port)
+                http.use_ssl = true if uri.scheme == 'https'
+                res = http.get(uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
         rescue Exception => e
@@ -201,14 +201,14 @@ get '/image/v1/*/*' do |command, url|
             if /^(.+)\.jpg\.to$/ =~ uri.host or /^http:\/\/gazoreply\.jp\/\d+\/[a-zA-Z\.0-9]+$/ =~ url
                 is_html = true
             end
-            res = Net::HTTP.start(uri.host, uri.port) {|http|
-                http.get(uri.path)
-            }
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true if uri.scheme == 'https'
+            res = http.get(uri.path)
             if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
                 uri = URI.parse($1)
-                res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
-                }
+                http = Net::HTTP.new(uri.host, uri.port)
+                http.use_ssl = true if uri.scheme == 'https'
+                res = http.get(uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
         rescue Exception => e
