@@ -13,7 +13,9 @@ require 'rack/contrib'
 require 'base64'
 require 'iron_cache'
 require './lib/komenuka'
-require 'newrelic_rpm'
+configure :production do
+    require 'newrelic_rpm'
+end
 
 use Rack::Deflater
 use Rack::StaticCache, :urls => ['/favicon.ico', '/robots.txt', '/css', '/js', '/img', '/template'], :root => 'public'

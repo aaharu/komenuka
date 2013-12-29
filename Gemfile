@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.0.0'
+ruby '2.1.0'
 gem 'puma', '~> 2.6'
 gem 'sinatra', '~> 1.4'
 gem 'sinatra-contrib', '~> 1.4'
@@ -9,7 +9,10 @@ gem 'dalli', '~> 2.6'
 gem 'rack-contrib'
 gem 'punycode4r', '~> 0.2.0'
 gem 'iron_cache'
-gem 'newrelic_rpm'
+
+group :production do
+    gem 'newrelic_rpm'
+end
 
 group :development, :test do
     gem 'rake'
