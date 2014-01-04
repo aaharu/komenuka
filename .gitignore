@@ -49,6 +49,9 @@ Session.vim
 .netrwhist
 *~
 
+# IntelliJ
+.idea/
+*.iml
 
 # IronCache
 iron.json

@@ -16,7 +16,7 @@ komenukaEditor =
 
         $outjson.change(() ->
             url = location.hash.substring(1)
-            $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify($outjson.val())) + "/" + encodeURIComponent(url))
+            $komenukaUrlText.val("http://#{location.host}/page/v1/#{encodeURIComponent(JSON.stringify($outjson.val()))}/#{encodeURIComponent(url)}")
             return
         )
 
@@ -61,22 +61,22 @@ komenukaEditor =
             $.get("//allow-any-origin.appspot.com/" + url, (data) ->
                 imgTag = data.match(/<img.+src="([^"]+)".+>/i)
                 if imgTag isnt null
-                    img.src = "//allow-any-origin.appspot.com/" + imgTag[1]
+                    img.src = "//allow-any-origin.appspot.com/#{imgTag[1]}"
             )
         else
             ptn = url.match(/^http:\/\/tiqav\.com\/([\w\d]+)$/i)
             if ptn isnt null
                 # あとでちゃんとかく
-                $.get("//allow-any-origin.appspot.com/http://api.tiqav.com/images/" + ptn[1] + ".json", (data) ->
-                    tiqavUrl = "http://img.tiqav.com/" + data.id + "." + data.ext
+                $.get("//allow-any-origin.appspot.com/http://api.tiqav.com/images/#{ptn[1]}.json", (data) ->
+                    tiqavUrl = "http://img.tiqav.com/#{data.id}.#{data.ext}"
                     location.hash = tiqavUrl
                     url = tiqavUrl
-                    img.src = "//allow-any-origin.appspot.com/" + tiqavUrl
+                    img.src = "//allow-any-origin.appspot.com/#{tiqavUrl}"
                     return
                 )
             else
                 # Access-Control-Allow-Originで許可されていればproxyいらない
-                img.src = "//allow-any-origin.appspot.com/" + url
+                img.src = "//allow-any-origin.appspot.com/#{url}"
 
         $rectangleBtn.click(() ->
             $drawText.attr({disabled: "disabled"})
@@ -115,7 +115,7 @@ komenukaEditor =
                 $komenukaUrlText.val("")
                 return
             $outjson.val(JSON.stringify(obj))
-            $komenukaUrlText.val("http://" + location.host + "/page/v1/" + encodeURIComponent(JSON.stringify(obj)) + "/" + encodeURIComponent(url))
+            $komenukaUrlText.val("http://#{location.host}/page/v1/#{encodeURIComponent(JSON.stringify(obj))}/#{encodeURIComponent(url)}")
             return
         )
         return
@@ -126,10 +126,36 @@ else
     komenukaEditor.initEditor()
 
 app = angular.module("app", [])
-app.controller("EditorController", ["$scope", ($scope) ->
+app.controller("EditorController", ["$scope", "$http", ($scope, $http) ->
+    $scope.images = []
+
     $scope.inputUrl = () ->
+        if not $scope.url?
+            return
         location.hash = $scope.url
         komenukaEditor.initEditor()
+        return
+
+    $scope.searchTiqav = () ->
+        if not $scope.query?
+            return
+        $scope.images = [{src: "/img/loading.gif"}]
+        $http.jsonp("http://api.tiqav.com/search.json?callback=JSON_CALLBACK&q=#{$scope.query}").success((data) ->
+            srcs = []
+            data.forEach((image) ->
+                srcs.push
+                    src: "http://img.tiqav.com/#{image.id}.#{image.ext}"
+                return
+            )
+            $scope.images = srcs
+            return
+        )
+        return
+
+    $scope.selectImage = ($event) ->
+        if $event.target.src? and not /\/img\/loading\.gif$/.test($event.target.src)
+            location.hash = $event.target.src
+            komenukaEditor.initEditor()
         return
     return
 ])
