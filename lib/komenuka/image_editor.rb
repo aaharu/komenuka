@@ -127,15 +127,15 @@ module Komenuka
                                     self.fill = arg.fetch('color', '#000000')
                                     self.pointsize = fontSize
                                     if type == 1 then
-                                        self.affine = self.calculateMatrix(1, -1, 270, 0, 0)
+                                        self.affine = ImageEditor.calculateMatrix(1, -1, 270, 0, 0)
                                     elsif type == 2 then
-                                        self.affine = self.calculateMatrix(1, 1, 0, 0, 0)
+                                        self.affine = ImageEditor.calculateMatrix(1, 1, 0, 0, 0)
                                     elsif type == 3 then
-                                        self.affine = self.calculateMatrix(1, 1, 0, 0, 0)
+                                        self.affine = ImageEditor.calculateMatrix(1, 1, 0, 0, 0)
                                     elsif type == 4 then
-                                        self.affine = self.calculateMatrix(1, 1, 90, 0, 0)
+                                        self.affine = ImageEditor.calculateMatrix(1, 1, 90, 0, 0)
                                     elsif type == 5 then
-                                        self.affine = self.calculateMatrix(1, 1, 90, 0, 0)
+                                        self.affine = ImageEditor.calculateMatrix(1, 1, 90, 0, 0)
                                     end
                                 end
                                 i += 1
