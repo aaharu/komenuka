@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    backports (3.4.0)
+    backports (3.4.1)
     dalli (2.7.0)
     iron_cache (1.4.0)
       iron_core (>= 0.5.1)
@@ -23,8 +23,8 @@ GEM
     rack-test (0.6.2)
       rack (>= 1.0)
     rake (10.1.1)
-    rest (2.7.0)
-      net-http-persistent
+    rest (2.7.1)
+      net-http-persistent (>= 2.9.1)
       rest_client (>= 1.7.1)
     rest_client (1.7.2)
       netrc (~> 0.7.7)
