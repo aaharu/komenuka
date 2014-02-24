@@ -42,7 +42,7 @@ get '/api/images/recent' do
     begin
         image_set = Komenuka::RecentImages.getRecentImages
     rescue Exception => e
-        logger.warn e.to_s
+        logger.warn e.to_s unless e.to_s.include?("HTTP 404 Error: Not found")
     end
     image_set = Set.new unless image_set
     hash = {:images => image_set.to_a}
