@@ -12,7 +12,7 @@ module Komenuka
     module RecentImages
         IMAGE_NUM_MAX = 15
 
-        def self.saveRecentUrl url
+        def self.save_recent_url(url)
             dc = Dalli::Client.new(
                 ENV['MEMCACHIER_SERVERS'].split(','),
                 {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
@@ -29,7 +29,7 @@ module Komenuka
             dc.set('set', image_set)
         end
 
-        def self.getRecentImages
+        def self.get_recent_images
             dc = Dalli::Client.new(
                 ENV['MEMCACHIER_SERVERS'].split(','),
                 {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
@@ -37,16 +37,16 @@ module Komenuka
             return dc.get('set')
         end
 
-        def self.deleteRecentImage url
+        def self.delete_recent_image(url)
             if url
                 dc = Dalli::Client.new(
                     ENV['MEMCACHIER_SERVERS'].split(','),
                     {:username => ENV['MEMCACHIER_USERNAME'], :password => ENV['MEMCACHIER_PASSWORD']}
                 )
-                splited_url = url.split('/', 5)
-                encoded_url =  '/' + splited_url[1] + '/' + splited_url[2] + '/' + URI.encode(splited_url[3], /[^\w\d]/) + '/' + URI.encode(splited_url[4], /[^\w\d]/)
+                split_url = url.split('/', 5)
+                encoded_url =  '/' + split_url[1] + '/' + split_url[2] + '/' + URI.encode(split_url[3], /[^\w\d]/) + '/' + URI.encode(split_url[4], /[^\w\d]/)
                 image_set = dc.get('set')
-                image_set.delete(Komenuka::RecentData.new(encoded_url, nil, nil))
+                image_set.delete(Komenuka::RecentData.new(encoded_url))
                 dc.set('set', image_set)
             end
         end

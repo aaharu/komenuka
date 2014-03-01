@@ -6,13 +6,13 @@ require 'punycode'
 
 module Komenuka
     module Util
-        def self.buildUrl url
-            unless /^http/ =~ url
-                url = 'http://' + url
-            else
+        def self.build_url(url)
+            if /^http/ =~ url
                 unless url.index('://')
                     url.sub!(':/', '://')
                 end
+            else
+                url = 'http://' + url
             end
             url.sub!(/:\/\/([^\/]+)/) {|match|
                 words = $1.split('.')
