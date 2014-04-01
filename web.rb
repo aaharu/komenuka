@@ -41,7 +41,7 @@ get '/api/images/recent' do
     image_set = nil
     begin
         image_set = Komenuka::RecentImages.get_recent_images
-    rescue Exception => e
+    rescue => e
         logger.warn e.to_s
     end
     image_set = Set.new unless image_set
@@ -75,7 +75,7 @@ get '/image/v1' do
     command = params['command']
     begin
         command_hash = JSON.parse(command)
-    rescue Exception => e
+    rescue => e
         logger.error e.to_s
         halt 400, 'command error'
     end
@@ -96,7 +96,7 @@ get '/image/v1' do
             image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
             use_cache = true
         end
-    rescue Exception => e
+    rescue => e
         logger.warn e.to_s
     end
 
@@ -118,7 +118,7 @@ get '/image/v1' do
                 res = http.get(uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
-        rescue Exception => e
+        rescue => e
             logger.info url
             logger.error e.to_s
             halt 500, 'url error'
@@ -128,19 +128,19 @@ get '/image/v1' do
     unless use_cache
         begin
             Komenuka::ImageEditor.edit_image(command_hash, image)
-        rescue Exception => e
+        rescue => e
             logger.error e.to_s
             halt 500, 'image edit error'
         end
         begin
             cache.put(img_url, Base64.urlsafe_encode64(image.to_blob), :expires_in => 60 * 60 * 24 * 30)
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
 
         begin
             Komenuka::RecentImages.save_recent_url("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
     end
@@ -173,7 +173,7 @@ end
 get '/image/v1/*/*' do |command, url|
     begin
         command_hash = JSON.parse(command)
-    rescue Exception => e
+    rescue => e
         logger.error e.to_s
         halt 400, 'command error'
     end
@@ -190,7 +190,7 @@ get '/image/v1/*/*' do |command, url|
             image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
             use_cache = true
         end
-    rescue Exception => e
+    rescue => e
         logger.warn e.to_s
     end
 
@@ -212,7 +212,7 @@ get '/image/v1/*/*' do |command, url|
                 res = http.get(uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
-        rescue Exception => e
+        rescue => e
             logger.info url
             logger.error e.to_s
             halt 500, 'url error'
@@ -222,19 +222,19 @@ get '/image/v1/*/*' do |command, url|
     unless use_cache
         begin
             Komenuka::ImageEditor.edit_image(command_hash, image)
-        rescue Exception => e
+        rescue => e
             logger.error e.to_s
             halt 500, 'image edit error'
         end
         begin
             cache.put(img_url, Base64.urlsafe_encode64(image.to_blob), :expires_in => 60 * 60 * 24 * 30)
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
 
         begin
             Komenuka::RecentImages.save_recent_url("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(url, /[^\w\d]/)}")
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
     end
@@ -256,7 +256,7 @@ end
 get '/tiqav/v1/*/*' do |command, id|
     begin
         command_hash = JSON.parse(command)
-    rescue Exception => e
+    rescue => e
         logger.error e.to_s
         halt 400, 'command error'
     end
@@ -274,7 +274,7 @@ get '/tiqav/v1/*/*' do |command, id|
             image = Magick::Image.from_blob(Base64.urlsafe_decode64(item.value)).shift
             use_cache = true
         end
-    rescue Exception => e
+    rescue => e
         logger.warn e.to_s
     end
 
@@ -294,7 +294,7 @@ get '/tiqav/v1/*/*' do |command, id|
                 http.get(uri.path)
             }
             image = Magick::Image.from_blob(res.body).shift
-        rescue Exception => e
+        rescue => e
             logger.error e.to_s
             halt 500, 'url error'
         end
@@ -303,13 +303,13 @@ get '/tiqav/v1/*/*' do |command, id|
     unless use_cache
         begin
             Komenuka::ImageEditor.edit_image(command_hash, image)
-        rescue Exception => e
+        rescue => e
             logger.error e.to_s
             halt 500, 'image edit error'
         end
         begin
             cache.put(img_url, Base64.urlsafe_encode64(image.to_blob), :expires_in => 60 * 60 * 24 * 30)
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
 
@@ -317,7 +317,7 @@ get '/tiqav/v1/*/*' do |command, id|
             if uri
                 Komenuka::RecentImages.save_recent_url("/page/v1/#{URI.encode(command, /[^\w\d]/)}/#{URI.encode(uri.to_s, /[^\w\d]/)}")
             end
-        rescue Exception => e
+        rescue => e
             logger.warn e.to_s
         end
     end
