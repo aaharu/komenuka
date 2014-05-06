@@ -2,16 +2,16 @@ GEM
   remote: https://rubygems.org/
   specs:
     backports (3.6.0)
-    dalli (2.7.0)
+    dalli (2.7.1)
     iron_cache (1.4.2)
       iron_core (>= 0.5.1)
     iron_core (1.0.3)
       rest (>= 2.6.4)
     memcachier (0.0.2)
-    multi_json (1.9.2)
+    multi_json (1.10.0)
     net-http-persistent (2.9.4)
     netrc (0.7.7)
-    newrelic_rpm (3.7.3.204)
+    newrelic_rpm (3.8.0.218)
     puma (2.8.2)
       rack (>= 1.1, < 2.0)
     punycode4r (0.2.0)
@@ -22,7 +22,7 @@ GEM
       rack
     rack-test (0.6.2)
       rack (>= 1.0)
-    rake (10.2.2)
+    rake (10.3.1)
     rest (2.7.1)
       net-http-persistent (>= 2.9.1)
       rest_client (>= 1.7.1)
