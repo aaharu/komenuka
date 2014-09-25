@@ -63,6 +63,7 @@ iron.json
 node_modules/
 .sass-cache/
 tscommand.tmp.txt
+.tscache/
 
 src/coffee/*.js
 src/template/*.js
