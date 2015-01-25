@@ -110,12 +110,12 @@ get '/image/v1' do
             end
             http = Net::HTTP.new(uri.host, uri.port)
             http.use_ssl = true if uri.scheme == 'https'
-            res = http.get(uri.path)
+            res = http.get(uri.path.empty? ? '/' : uri.path)
             if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
                 uri = URI.parse($1)
                 http = Net::HTTP.new(uri.host, uri.port)
                 http.use_ssl = true if uri.scheme == 'https'
-                res = http.get(uri.path)
+                res = http.get(uri.path.empty? ? '/' : uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
         rescue => e
@@ -204,12 +204,12 @@ get '/image/v1/*/*' do |command, url|
             end
             http = Net::HTTP.new(uri.host, uri.port)
             http.use_ssl = true if uri.scheme == 'https'
-            res = http.get(uri.path)
+            res = http.get(uri.path.empty? ? '/' : uri.path)
             if is_html and /<img.+src="([^"]+)".+>/ =~ res.body
                 uri = URI.parse($1)
                 http = Net::HTTP.new(uri.host, uri.port)
                 http.use_ssl = true if uri.scheme == 'https'
-                res = http.get(uri.path)
+                res = http.get(uri.path.empty? ? '/' : uri.path)
             end
             image = Magick::Image.from_blob(res.body).shift
         rescue => e
@@ -285,13 +285,13 @@ get '/tiqav/v1/*/*' do |command, id|
             else
                 uri = URI.parse("http://api.tiqav.com/images/#{id}.json")
                 res = Net::HTTP.start(uri.host, uri.port) {|http|
-                    http.get(uri.path)
+                    http.get(uri.path.empty? ? '/' : uri.path)
                 }
                 tiqav_hash = JSON.parse(res.body)
                 uri = URI.parse('http://img.tiqav.com/' + tiqav_hash['id'] + '.' + tiqav_hash['ext'])
             end
             res = Net::HTTP.start(uri.host, uri.port) {|http|
-                http.get(uri.path)
+                http.get(uri.path.empty? ? '/' : uri.path)
             }
             image = Magick::Image.from_blob(res.body).shift
         rescue => e
