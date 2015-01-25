@@ -1,1 +1,1 @@
-web: bundle exec ruby web.rb -p $PORT -e $RACK_ENV
+web: bundle exec puma -t 5:5 -p $PORT -e $RACK_ENV
