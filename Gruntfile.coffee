@@ -46,11 +46,11 @@ module.exports = (grunt) ->
                     removeComments: false
                     sourceMap: false
 
-    grunt.loadNpmTasks "grunt-contrib-uglify"
-    grunt.loadNpmTasks "grunt-contrib-jshint"
-    grunt.loadNpmTasks "grunt-contrib-stylus"
-    grunt.loadNpmTasks "grunt-contrib-coffee"
-    grunt.loadNpmTasks "grunt-contrib-hogan"
-    grunt.loadNpmTasks "grunt-ts"
+    grunt.loadNpmTasks 'grunt-contrib-uglify'
+    grunt.loadNpmTasks 'grunt-contrib-jshint'
+    grunt.loadNpmTasks 'grunt-contrib-stylus'
+    grunt.loadNpmTasks 'grunt-contrib-coffee'
+    grunt.loadNpmTasks 'grunt-templates-hogan'
+    grunt.loadNpmTasks 'grunt-ts'
 
-    grunt.registerTask "default", ["ts", "coffee", "hogan", "jshint", "stylus", "uglify"]
+    grunt.registerTask 'default', ['ts', 'coffee', 'hogan', 'jshint', 'stylus', 'uglify']
