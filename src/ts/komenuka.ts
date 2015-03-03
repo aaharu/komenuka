@@ -4,8 +4,7 @@
  * https://raw.github.com/aaharu/komenuka/master/LICENSE
  */
 
-/// <reference path="../../submodule/DefinitelyTyped/jquery/jquery.d.ts" />
-/// <reference path="../../submodule/DefinitelyTyped/easeljs/easeljs.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 
 module komenuka {
     export class Canvas {
@@ -27,8 +26,8 @@ module komenuka {
         public init(bmp: createjs.Bitmap) {
             this._image = bmp;
             this._stage.removeAllEventListeners();
-            this._stage.canvas.width = bmp.image.width;
-            this._stage.canvas.height = bmp.image.height;
+            (<HTMLCanvasElement>this._stage.canvas).width = bmp.image.width;
+            (<HTMLCanvasElement>this._stage.canvas).height = bmp.image.height;
             this.clear();
             this._overlay = new createjs.Shape();
             this._overlay.alpha = 0.7;
@@ -182,7 +181,7 @@ module komenuka {
         public publishSpuitEvents() {
             this._stage.removeAllEventListeners();
             this._stage.on("stagemousedown", (e) => {
-                var imgData = this._stage.canvas.getContext("2d").getImageData((<createjs.MouseEvent>e).stageX | 0, (<createjs.MouseEvent>e).stageY | 0, 1, 1).data,
+                var imgData = (<HTMLCanvasElement>this._stage.canvas).getContext("2d").getImageData((<createjs.MouseEvent>e).stageX | 0, (<createjs.MouseEvent>e).stageY | 0, 1, 1).data,
                     fontColor = "#000",
                     pointColor = (imgData[0].toString(16) + imgData[1].toString(16) + imgData[2].toString(16)).toUpperCase();
                 if (imgData[0] < 128 || imgData[1] < 128 || imgData[2] < 128) {

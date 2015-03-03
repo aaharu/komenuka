@@ -65,6 +65,7 @@ node_modules/
 tscommand.tmp.txt
 .tscache/
 .baseDir.ts
+typings/
 
 src/coffee/*.js
 src/template/*.js
