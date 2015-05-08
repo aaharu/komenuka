@@ -11,3 +11,4 @@ package.json
 Gruntfile.coffee
 src/
 /submodule/
+tsd.json
