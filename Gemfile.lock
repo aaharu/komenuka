@@ -3,6 +3,7 @@ GEM
   specs:
     backports (3.6.4)
     dalli (2.7.4)
+    git-version-bump (0.15.1)
     iron_cache (1.4.2)
       iron_core (>= 0.5.1)
     iron_core (1.0.7)
@@ -11,13 +12,14 @@ GEM
     multi_json (1.11.1)
     net-http-persistent (2.9.4)
     netrc (0.10.3)
-    newrelic_rpm (3.12.0.288)
+    newrelic_rpm (3.12.1.298)
     puma (2.11.3)
       rack (>= 1.1, < 2.0)
     punycode4r (0.2.0)
     rack (1.6.4)
-    rack-contrib (1.2.0)
-      rack (>= 0.9.1)
+    rack-contrib (1.3.0)
+      git-version-bump (~> 0.15)
+      rack (~> 1.4)
     rack-protection (1.5.3)
       rack
     rack-test (0.6.3)
@@ -31,7 +33,7 @@ GEM
       rack (~> 1.4)
       rack-protection (~> 1.4)
       tilt (>= 1.3, < 3)
-    sinatra-contrib (1.4.4)
+    sinatra-contrib (1.4.6)
       backports (>= 2.0)
       multi_json
       rack-protection
