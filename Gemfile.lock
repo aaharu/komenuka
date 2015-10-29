@@ -1,23 +1,22 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    backports (3.6.4)
+    backports (3.6.6)
     dalli (2.7.4)
     git-version-bump (0.15.1)
     iron_cache (1.4.2)
       iron_core (>= 0.5.1)
-    iron_core (1.0.7)
+    iron_core (1.0.9)
       rest (>= 3.0.4)
     memcachier (0.0.2)
-    multi_json (1.11.1)
+    multi_json (1.11.2)
     net-http-persistent (2.9.4)
     netrc (0.10.3)
-    newrelic_rpm (3.12.1.298)
-    puma (2.11.3)
-      rack (>= 1.1, < 2.0)
+    newrelic_rpm (3.14.0.305)
+    puma (2.14.0)
     punycode4r (0.2.0)
     rack (1.6.4)
-    rack-contrib (1.3.0)
+    rack-contrib (1.4.0)
       git-version-bump (~> 0.15)
       rack (~> 1.4)
     rack-protection (1.5.3)
@@ -28,7 +27,7 @@ GEM
     rest (3.0.6)
       net-http-persistent (>= 2.9.1)
       netrc
-    rmagick (2.15.2)
+    rmagick (2.15.4)
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -57,3 +56,6 @@ DEPENDENCIES
   rmagick (~> 2.13)
   sinatra (~> 1.4)
   sinatra-contrib (~> 1.4)
+
+BUNDLED WITH
+   1.10.6
