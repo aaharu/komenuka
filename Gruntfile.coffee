@@ -5,7 +5,7 @@ module.exports = (grunt) ->
         pkg: pkg
         uglify:
             options:
-                preserveComments: 'some'
+                preserveComments: /^!/
             compile:
                 files:
                     'public/js/TextEx.min.js': ['src/js/TextEx.js']
