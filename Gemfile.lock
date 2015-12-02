@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    backports (3.6.6)
+    backports (3.6.7)
     dalli (2.7.4)
     git-version-bump (0.15.1)
     iron_cache (1.4.2)
@@ -11,9 +11,9 @@ GEM
     memcachier (0.0.2)
     multi_json (1.11.2)
     net-http-persistent (2.9.4)
-    netrc (0.10.3)
+    netrc (0.11.0)
     newrelic_rpm (3.14.0.305)
-    puma (2.14.0)
+    puma (2.15.3)
     punycode4r (0.2.0)
     rack (1.6.4)
     rack-contrib (1.4.0)
