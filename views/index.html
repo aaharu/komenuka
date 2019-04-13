@@ -9,14 +9,14 @@
         <meta content="komenuka,コメント画像,文字コラ" name="keywords" />
         <meta name="author" content="aaharu" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" />
-        <link href="/css/komenuka.css" rel="stylesheet" />
+        <link href="../src/styl/komenuka.styl" rel="stylesheet" />
         <meta property="og:title" content="komenuka" />
         <meta property="og:site_name" content="komenuka" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="http://komenuka.herokuapp.com/" />
         <meta property="og:image" content="http://komenuka.herokuapp.com/favicon.ico" />
         <meta property="og:description" content="komenuka は、動的画像変換サービスです。画像にコメントを追加することができます。" />
-        <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <link href="../public/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     </head>
     <body>
         <div id="fb-root"></div>
@@ -32,8 +32,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/3.2.2/masonry.pkgd.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/hogan.js/3.0.2/hogan.js"></script>
-        <script src="/template/recent_images.js?1"></script>
-        <script src="/js/top.min.js?1"></script>
+        <script src="../src/template/recent_images.mustache"></script>
+        <script src="../src/coffee/top.coffee"></script>
 <%= ga %>
     </body>
 </html>

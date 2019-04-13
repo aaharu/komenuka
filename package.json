@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "description": "URL for edited image.",
   "scripts": {
+    "dev": "parcel serve views/*.html",
+    "build": "parcel build -d public/dist --public-url '/dist/' views/*.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,12 +17,12 @@
     "url": "https://github.com/aaharu/komenuka/issues"
   },
   "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-contrib-coffee": "^0.13.0",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-stylus": "^0.22.0",
-    "grunt-contrib-uglify": "^0.11.0",
-    "grunt-templates-hogan": "^0.2.6",
-    "grunt-ts": "^5.2.0"
+    "@types/createjs": "0.0.29",
+    "@types/jquery": "^3.3.29",
+    "coffeescript": "^2.4.1",
+    "parcel-bundler": "^1.12.3",
+    "parcel-plugin-mustache": "0.0.2",
+    "stylus": "^0.54.5",
+    "typescript": "^3.4.3"
   }
 }

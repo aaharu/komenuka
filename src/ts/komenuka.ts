@@ -4,8 +4,6 @@
  * https://raw.github.com/aaharu/komenuka/master/LICENSE
  */
 
-/// <reference path="../../typings/tsd.d.ts" />
-
 module komenuka {
     export class Canvas {
         private _stage: createjs.Stage;
