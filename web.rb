@@ -2,7 +2,7 @@
 # komenuka
 # Copyright (c) 2013 aaharu
 # https://raw.github.com/aaharu/komenuka/master/LICENSE
-require 'RMagick'
+require 'rmagick'
 require 'sinatra'
 require 'sinatra/json'
 require 'uri'
@@ -23,17 +23,15 @@ ENV['MEMCACHE_SERVERS'] = ENV['MEMCACHIER_SERVERS']
 ENV['MEMCACHE_USERNAME'] = ENV['MEMCACHIER_USERNAME']
 ENV['MEMCACHE_PASSWORD'] = ENV['MEMCACHIER_PASSWORD']
 
-configure do
-    set :views [ './public/dist', './views' ]
-end
-  
-def find_template(views, name, engine, &block)
-    Array(views).each do |v|
-      super(v, name, engine, &block)
-    end
-end
+Tilt.register 'html', Tilt[:erb]
 
-Tilt.register :html, Tilt[:erb]
+set :views, ['./public/dist', './views']
+
+helpers do
+  def find_template(views, name, engine, &block)
+    Array(views).each { |v| super(v, name, engine, &block) }
+  end
+end
 
 get '/' do
     expires 100, :public, :must_revalidate

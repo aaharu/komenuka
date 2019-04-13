@@ -49,7 +49,7 @@ DEPENDENCIES
   puma (~> 3.4)
   punycode4r (~> 0.2.0)
   rack-contrib
-  rmagick (~> 2.13)
+  rmagick (~> 2.16)
   sinatra (~> 1.4)
   sinatra-contrib (~> 1.4)
 

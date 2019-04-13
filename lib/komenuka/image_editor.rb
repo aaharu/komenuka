@@ -2,7 +2,7 @@
 # komenuka
 # Copyright (c) 2013 aaharu
 # https://raw.github.com/aaharu/komenuka/master/LICENSE
-require 'RMagick'
+require 'rmagick'
 
 module Komenuka
     module ImageEditor
