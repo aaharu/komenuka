@@ -1,8 +1,11 @@
 language: ruby
+cache: bundler
 rvm:
     - 2.6.2
 gemfile:
     - Gemfile
+before_install:
+    - gem install bundler:2.0.1
 branches:
     only:
         - master

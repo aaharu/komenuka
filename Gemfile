@@ -13,7 +13,3 @@ gem 'iron_cache'
 group :production do
     gem 'newrelic_rpm'
 end
-
-group :development, :test do
-    gem 'rake'
-end
